@@ -1,12 +1,17 @@
 #include <stddef.h>
-#include <assert.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <string.h>
+#include <errno.h>
+#include <assert.h>
 
 #include <bcm_host.h>
 
-#include <bcm2837.h>
-#include <bcm2837_pwm.h>
+#include "bcm2837.h"
+#include "bcm2837_pwm.h"
+#include "log.h"
+
+#define TAG "BCM2837"
 
 /**
   @brief  Map physical memory located at offset into the virtual memory space
@@ -20,7 +25,7 @@ static void* mapPhysicalMemory(off_t offset, size_t length)
   int32_t file = open("/dev/mem", O_RDWR);
   if (file == -1)
   {
-    // LOG the mesage
+    LOGF(TAG, "Failed to open /dev/mem. Error: %s", strerror(errno));
     return NULL;
   }
 
@@ -28,15 +33,15 @@ static void* mapPhysicalMemory(off_t offset, size_t length)
   void* virtual = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED, file, offset);
   if (virtual == MAP_FAILED)
   {
-    // LOG the failure
+    LOGF(TAG, "Failed to map physical address 0x%X of length %d. Error: %s", offset, length, strerror(errno));
     return NULL;
   }
 
   int32_t result = close(file);
   if (result == -1)
-  {
-    // LOG the error
-  }
+    LOGE(TAG, "Failed to close /dev/mem. Error: %s", strerror(errno));
+
+  LOGI(TAG, "Mapped physical address 0x%X to virtual address 0x%X", offset, virtual);
 
   return virtual;
 }
@@ -54,8 +59,7 @@ void bcm2837_init()
   // Don't initalize twice
   if (virtualBase != NULL)
   {
-    // LOG the error
-    // Already initalized
+    LOGW(TAG, "Already initialized.");
     return;
   }
 
@@ -67,7 +71,7 @@ void bcm2837_init()
   virtualBase = mapPhysicalMemory(physicalBase, length);
   if (virtualBase == NULL)
   {
-    // LOG the failure
+    LOGF(TAG, "Failed to map physical memory.");
     return;
   }
 
