@@ -6,6 +6,19 @@
 static bcm2837_pwm_t* pwm = NULL;
 
 /**
+  @brief  Initalize the PWM object at the given base address
+
+  @param  base Base address of PWM peripheral
+  @retval none
+*/
+void pwmInit(void* base)
+{
+  assert(base != NULL);
+
+  pwm = base;
+}
+
+/**
   @brief  Set the range of the target PWM channel
 
   @param  channel PWM channel

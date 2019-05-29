@@ -9,4 +9,6 @@
 #define WMB() do {__sync_synchronize();} while (0)
 #define RMB() WMB()
 
+void bcm2837_init(void);
+
 #endif

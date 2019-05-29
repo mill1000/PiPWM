@@ -109,6 +109,7 @@ typedef struct bcm2837_pwm_t
   volatile uint32_t         DAT2;
 } bcm2837_pwm_t;
 
+void pwmInit(void* base);
 void pwmReset(void);
 void pwmConfigureDma(bool enable, uint32_t panicThreshold, uint32_t dreqThreshold);
 void pwmSetData(pwm_channel_t channel, uint32_t data);
