@@ -79,6 +79,9 @@ typedef struct bcm2837_clock_t
 } bcm2837_clock_t;
 
 void clockInit(void* base);
+void clockConfigure(clock_peripheral_t peripheral, const clock_configuration_t* config);
+void clockWaitBusy(clock_peripheral_t peripheral);
+void clockEnable(clock_peripheral_t peripheral, bool enable);
 
 static_assert(sizeof(clock_control_t) == sizeof(uint32_t), "clock_control_t must be 4 bytes.");
 static_assert(sizeof(clock_divisor_t) == sizeof(uint32_t), "clock_divisor_t must be 4 bytes.");

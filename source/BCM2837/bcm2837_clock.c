@@ -114,27 +114,29 @@ void clockWaitBusy(clock_peripheral_t peripheral)
 */
 void clockConfigure(clock_peripheral_t peripheral, const clock_configuration_t* config)
 {
+  assert(config != NULL);
+
   assert(config->divi > 0 && config->divi < 4096);
-  assert(config->divf > 0 && config->divf < 4096);
+  assert(config->divf >= 0 && config->divf < 4096);
 
   bcm2837_clock_t* clock = clockGetPeripheralClock(peripheral);
 
   assert(clock != NULL);
 
-  // Disable clock generator
+  // Read existing control register to prevent changing other bits when disabling
+  clock_control_t control = clock->CTL;
+  control.PASSWD = CLOCK_MANAGER_PASSWORD;
+  control.ENAB = 0; // Disable clock generator
+  
   WMB();
-  clock->CTL.ENAB = 0;
+  clock->CTL = control;
   
   // Wait for idle
   while (clock->CTL.BUSY);
   RMB();
 
-  // Don't configure if null
-  if (config == NULL)
-    return;
-
-  // Configure source
-  clock_control_t control = (clock_control_t) {0};
+  // Re configure source, mash and flip bits
+  control = (clock_control_t) {0};
   control.PASSWD = CLOCK_MANAGER_PASSWORD;
   control.SRC = config->source;
   control.MASH = config->mash;
