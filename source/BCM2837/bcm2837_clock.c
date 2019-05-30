@@ -30,14 +30,34 @@ static bcm2837_clock_t* clockGetPeripheralClock(clock_peripheral_t peripheral)
   assert(clock != NULL);
   assert(peripheral < clock_peripheral_max);
 
+  uint32_t offset = 0;
   switch (peripheral)
   {
+    case clock_peripheral_gp0:
+      offset = CLOCK_GP0_OFFSET;
+      break;
+
+    case clock_peripheral_gp1:
+      offset = CLOCK_GP1_OFFSET;
+      break;
+
+      case clock_peripheral_gp2:
+      offset = CLOCK_GP2_OFFSET;
+      break;
+
+    case clock_peripheral_pcm:
+      offset = CLOCK_PCM_OFFSET;
+      break;
+
     case clock_peripheral_pwm:
-      return (bcm2837_clock_t*) (clock + CLOCK_PWM_OFFSET);
+      offset = CLOCK_PWM_OFFSET;
+      break;
 
     default:
       return NULL;
   }
+
+  return (bcm2837_clock_t*) (clock + offset);
 }
 
 /**
@@ -50,6 +70,8 @@ static bcm2837_clock_t* clockGetPeripheralClock(clock_peripheral_t peripheral)
 void clockEnable(clock_peripheral_t peripheral, bool enable)
 {
   bcm2837_clock_t* clock = clockGetPeripheralClock(peripheral);
+
+  assert(clock != NULL);
 
   // Read existing control register
   clock_control_t control = clock->CTL;
@@ -74,6 +96,8 @@ void clockWaitBusy(clock_peripheral_t peripheral)
 {
   bcm2837_clock_t* clock = clockGetPeripheralClock(peripheral);
 
+  assert(clock != NULL);
+
   while(clock->CTL.BUSY);
 
   RMB();
@@ -94,6 +118,8 @@ void clockConfigure(clock_peripheral_t peripheral, const clock_configuration_t* 
   assert(config->divf > 0 && config->divf < 4096);
 
   bcm2837_clock_t* clock = clockGetPeripheralClock(peripheral);
+
+  assert(clock != NULL);
 
   // Disable clock generator
   WMB();
