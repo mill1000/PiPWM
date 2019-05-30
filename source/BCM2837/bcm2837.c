@@ -10,6 +10,7 @@
 #include "bcm2837.h"
 #include "bcm2837_pwm.h"
 #include "bcm2837_clock.h"
+#include "bcm2837_gpio.h"
 #include "log.h"
 
 #define TAG "BCM2837"
@@ -81,4 +82,7 @@ void bcm2837_init()
 
   // Initlaize clock module at it's base address
   clockInit(virtualBase + CLOCK_BASE_OFFSET);
+
+  // Initlaize clock module at it's base address
+  gpioInit(virtualBase + GPIO_BASE_OFFSET);
 }
