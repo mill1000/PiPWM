@@ -9,6 +9,7 @@
 
 #include "bcm2837.h"
 #include "bcm2837_pwm.h"
+#include "bcm2837_clock.h"
 #include "log.h"
 
 #define TAG "BCM2837"
@@ -75,6 +76,9 @@ void bcm2837_init()
     return;
   }
 
-  // Initalize the PWM module at it's base address
+  // Initalize PWM module at it's base address
   pwmInit(virtualBase + PWM_BASE_OFFSET);
+
+  // Initlaize clock module at it's base address
+  clockInit(virtualBase + CLOCK_BASE_OFFSET);
 }
