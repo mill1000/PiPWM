@@ -14,6 +14,7 @@ static bcm2837_pwm_t* pwm = NULL;
 void pwmInit(void* base)
 {
   assert(base != NULL);
+  assert(pwm == NULL);
 
   pwm = base;
 }
