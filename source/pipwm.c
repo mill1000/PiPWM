@@ -18,7 +18,7 @@ void main()
   clockConfig.source = CLOCK_SOURCE_OSCILLATOR;
   clockConfig.mash = CLOCK_MASH_NONE;
   clockConfig.invert = false;
-  clockConfig.divi = 50;
+  clockConfig.divi = 300;
   clockConfig.divf = 0;
 
   LOGI(TAG, "Configuring clock");
@@ -36,27 +36,27 @@ void main()
 
   LOGI(TAG, "Configuring PWM");
   pwmConfigure(pwm_channel_1, &pwmConfig);
-  pwmSetRange(pwm_channel_1, 1 << 12);
+  pwmSetRange(pwm_channel_1, 1 << 10);
 
   LOGI(TAG, "Enabling PWM");
   pwmEnable(pwm_channel_1, true);
 
-  //pwmSetData(pwm_channel_1, 1);
+  //pwmSetData(pwm_channel_1, 2);
   //return;
   
   while(1)
   {
-  for (int16_t i = 1; i < 1 << 12; i++)
+  for (int16_t i = 1; i < 1024; i++)
   {
     LOGI(TAG, "Setting PWM output %d", i );
     pwmSetData(pwm_channel_1, i );
-    usleep(.5e3);
+    usleep(1e3);
   }
-  for (int16_t i = 1 << 12; i >= 1; i--)
+  for (int16_t i = 1024; i >= 1; i--)
   {
     LOGI(TAG, "Setting PWM output %d", i );
     pwmSetData(pwm_channel_1, i );
-    usleep(.5e3);
+    usleep(1e3);
   }
   }
 }
