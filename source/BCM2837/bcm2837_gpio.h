@@ -3,9 +3,17 @@
 
 #include "bcm2837.h"
 
+/**
+  @brief  Internal structures, types and constants
+*/
+
 #define GPIO_BASE_OFFSET (0x00200000)
 
-typedef uint32_t gpio_pin_t;
+#ifdef BCM2837_EXTENDED_GPIO
+#define GPIO_PIN_COUNT     (54)
+#else
+#define GPIO_PIN_COUNT     (32)
+#endif
 
 typedef enum __attribute__((packed))
 {
@@ -133,8 +141,6 @@ typedef struct bcm2837_gpio_t
   volatile uint32_t _test;
 } bcm2837_gpio_t;
 
-void gpioInit(void* base);
-
 static_assert(sizeof(gpio_function_select_x_t) == sizeof(uint32_t), "gpio_function_select_x_t must be 4 bytes.");
 static_assert(sizeof(gpio_output_set_x_t) == sizeof(uint32_t), "gpio_output_set_x_t must be 4 bytes.");
 static_assert(sizeof(gpio_output_clear_x_t) == sizeof(uint32_t), "gpio_output_clear_x_t must be 4 bytes.");
@@ -150,5 +156,53 @@ static_assert(sizeof(gpio_pull_up_down_t) == sizeof(uint32_t), "gpio_pull_up_dow
 static_assert(sizeof(gpio_pull_up_down_clock_x_t) == sizeof(uint32_t), "gpio_pull_up_down_clock_x_t must be 4 bytes.");
 
 static_assert(sizeof(bcm2837_gpio_t) == 45 * sizeof(uint32_t), "bcm2837_gpio_t must be 180 bytes.");
+
+/**
+  @brief  External structures, types and interfaces.
+*/
+typedef uint32_t gpio_pin_t;
+
+typedef enum gpio_pull_t
+{
+  gpio_pull_none  = GPIO_PULL_OFF,
+  gpio_pull_down  = GPIO_PULL_DOWN,
+  gpio_pull_up    = GPIO_PULL_UP,
+  gpio_pull_no_change,
+} gpio_pull_t;
+
+typedef enum gpio_function_t
+{
+  gpio_function_input   = GPIO_FUNCTION_INPUT,
+  gpio_function_output  = GPIO_FUNCTION_OUTPUT,
+  gpio_function_af0     = GPIO_FUNCTION_AF0,
+  gpio_function_af1     = GPIO_FUNCTION_AF1,
+  gpio_function_af2     = GPIO_FUNCTION_AF2,
+  gpio_function_af3     = GPIO_FUNCTION_AF3,
+  gpio_function_af4     = GPIO_FUNCTION_AF4,
+  gpio_function_af5     = GPIO_FUNCTION_AF5,
+} gpio_function_t;
+
+typedef enum gpio_event_detect_t
+{
+  gpio_event_detect_none,
+  gpio_event_detect_rising_edge,
+  gpio_event_detect_falling_edge,
+  gpio_event_detect_any_edge,
+  gpio_event_detect_high_level,
+  gpio_event_detect_low_level,
+  gpio_event_detect_rising_edge_async,
+  gpio_event_detect_falling_edge_async,
+  //gpio_event_detect_any_edge_async, // TODO Unknown if async edges can be combined.
+} gpio_event_detect_t;
+
+typedef struct gpio_configuration_t
+{
+  gpio_function_t     function;
+  gpio_pull_t         pull;
+  gpio_event_detect_t eventDetect;
+} gpio_configuration_t;
+
+void gpioInit(void* base);
+void gpioConfigure(gpio_pin_t pin, const gpio_configuration_t* config);
 
 #endif
