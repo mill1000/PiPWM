@@ -131,7 +131,7 @@ void pwmClearFifo()
 }
 
 /**
-  @brief  Configure the target peripheral clock source and divisor
+  @brief  Configure the target PWM channel
 
   @param  peripheral Target peripheral clock to configure
   @param  config PWM configuration to set
