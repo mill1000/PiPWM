@@ -3,28 +3,9 @@
 
 #include "bcm2837.h"
 
-typedef enum pwm_channel_t
-{
-  pwm_channel_1,
-  pwm_channel_2,
-  pwm_channel_max,
-} pwm_channel_t;
-
-typedef enum pwm_mode_t 
-{
-  pwm_mode_pwm_algorithm,
-  pwm_mode_mark_space,
-  pwm_mode_serial,
-} pwm_mode_t;
-
-typedef struct pwm_configuration_t
-{
-  pwm_mode_t mode;
-  bool       fifoEnable;
-  bool       repeatLast;
-  bool       invert;
-  uint8_t    silenceBit;
-} pwm_configuration_t;
+/**
+  @brief  Internal structures, types and constants
+*/
 
 #define PWM_BASE_OFFSET (0x0020C000)
 
@@ -125,6 +106,38 @@ typedef struct bcm2837_pwm_t
   volatile uint32_t         DAT2;
 } bcm2837_pwm_t;
 
+static_assert(sizeof(pwm_control_t) == sizeof(uint32_t), "pwm_control_t must be 4 bytes.");
+static_assert(sizeof(pwm_status_t) == sizeof(uint32_t), "pwm_status_t must be 4 bytes.");
+static_assert(sizeof(pwm_dma_config_t) == sizeof(uint32_t), "pwm_dma_config_t must be 4 bytes.");
+static_assert(sizeof(bcm2837_pwm_t) == 10 * sizeof(uint32_t), "bcm2837_pwm_t must be 40 bytes.");
+
+/**
+  @brief  External structures, types and interfaces.
+*/
+
+typedef enum pwm_channel_t
+{
+  pwm_channel_1,
+  pwm_channel_2,
+  pwm_channel_max,
+} pwm_channel_t;
+
+typedef enum pwm_mode_t 
+{
+  pwm_mode_pwm_algorithm,
+  pwm_mode_mark_space,
+  pwm_mode_serial,
+} pwm_mode_t;
+
+typedef struct pwm_configuration_t
+{
+  pwm_mode_t mode;
+  bool       fifoEnable;
+  bool       repeatLast;
+  bool       invert;
+  uint8_t    silenceBit;
+} pwm_configuration_t;
+
 void pwmInit(void* base);
 void pwmReset(void);
 void pwmClearFifo(void);
@@ -133,10 +146,5 @@ void pwmSetData(pwm_channel_t channel, uint32_t data);
 void pwmSetRange(pwm_channel_t channel, uint32_t data);
 void pwmConfigure(pwm_channel_t channel, const pwm_configuration_t* config);
 void pwmEnable(pwm_channel_t channel, bool enable);
-
-static_assert(sizeof(pwm_control_t) == sizeof(uint32_t), "pwm_control_t must be 4 bytes.");
-static_assert(sizeof(pwm_status_t) == sizeof(uint32_t), "pwm_status_t must be 4 bytes.");
-static_assert(sizeof(pwm_dma_config_t) == sizeof(uint32_t), "pwm_dma_config_t must be 4 bytes.");
-static_assert(sizeof(bcm2837_pwm_t) == 10 * sizeof(uint32_t), "bcm2837_pwm_t must be 40 bytes.");
 
 #endif
