@@ -162,6 +162,12 @@ static_assert(sizeof(bcm2837_gpio_t) == 45 * sizeof(uint32_t), "bcm2837_gpio_t m
 */
 typedef uint32_t gpio_pin_t;
 
+#ifdef BCM2837_EXTENDED_GPIO
+typedef uint64_t gpio_pin_mask_t;
+#else
+typedef uint32_t gpio_pin_mask_t;
+#endif
+
 typedef enum gpio_pull_t
 {
   gpio_pull_none  = GPIO_PULL_OFF,
@@ -204,5 +210,9 @@ typedef struct gpio_configuration_t
 
 void gpioInit(void* base);
 void gpioConfigure(gpio_pin_t pin, const gpio_configuration_t* config);
+void gpioSet(gpio_pin_t pin);
+void gpioSetMask(gpio_pin_mask_t mask);
+void gpioClear(gpio_pin_t pin);
+void gpioClearMask(gpio_pin_mask_t mask);
 
 #endif

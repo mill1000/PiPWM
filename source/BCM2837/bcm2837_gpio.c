@@ -141,3 +141,81 @@ void gpioConfigure(gpio_pin_t pin, const gpio_configuration_t* config)
 
   RMB();
 }
+
+/**
+  @brief  Set the target GPIO pin
+
+  @param  pin GPIO pin to set
+  @retval void
+*/
+void gpioSet(gpio_pin_t pin)
+{
+  assert(gpio != NULL);
+  assert(pin < GPIO_PIN_COUNT);
+
+  // Determine which 32-bit "bank" the pin is in
+  uint8_t bank = pin / 32;
+
+  // Construct a mask for the pin number in it's bank
+  uint32_t mask = 1 << (pin % 32);
+
+  WMB();
+  gpio->GPSETx[bank].SET = mask;
+}
+
+/**
+  @brief  Set all GPIO pins in the input mask
+
+  @param  mask GPIO pin mask to set
+  @retval void
+*/
+void gpioSetMask(gpio_pin_mask_t mask)
+{
+  assert(gpio != NULL);
+
+  WMB();
+  gpio->GPSETx[0].SET = mask;
+
+#ifdef BCM2837_EXTENDED_GPIO
+  gpio->GPSETx[1].SET = mask >> 32;
+#endif
+}
+
+/**
+  @brief  Clear the target GPIO pin
+
+  @param  pin GPIO pin to set
+  @retval void
+*/
+void gpioClear(gpio_pin_t pin)
+{
+  assert(gpio != NULL);
+  assert(pin < GPIO_PIN_COUNT);
+
+  // Determine which 32-bit "bank" the pin is in
+  uint8_t bank = pin / 32;
+
+  // Construct a mask for the pin number in it's bank
+  uint32_t mask = 1 << (pin % 32);
+
+  WMB();
+  gpio->GPCLRx[bank].CLR = mask;
+}
+
+/**
+  @brief  Clear all GPIO pins in the input mask
+
+  @param  mask GPIO pin mask to clear
+  @retval void
+*/
+void gpioClearMask(gpio_pin_mask_t mask)
+{
+  assert(gpio != NULL);
+
+  WMB();
+  gpio->GPCLRx[0].CLR = mask;
+
+#ifdef BCM2837_EXTENDED_GPIO
+  gpio->GPCLRx[1].CLR = mask >> 32;
+#endif
+}
