@@ -115,4 +115,112 @@ void pwmReset()
   pwm->DMAC.DREQ = 0x7;
 }
 
+/**
+  @brief  Clear the PWM FIFO
 
+  @param  none
+  @retval none
+*/
+void pwmClearFifo()
+{
+  assert(pwm != NULL);
+
+  WMB();
+
+  pwm->CTL.CLRF1 = 1;
+}
+
+/**
+  @brief  Configure the target peripheral clock source and divisor
+
+  @param  peripheral Target peripheral clock to configure
+  @param  config PWM configuration to set
+  @retval void
+*/
+void pwmConfigure(pwm_channel_t channel, const pwm_configuration_t* config)
+{
+  assert(pwm != NULL);
+  assert(config != NULL);
+  
+  WMB();
+
+  volatile pwm_control_t* control = &pwm->CTL;
+
+  // Update control register according to config
+  if (channel == pwm_channel_1)
+  {
+    // Disable channel before update
+    control->PWEN1 = 0;
+
+    switch(config->mode)
+    {
+      case pwm_mode_serial:
+        control->MODE1 = 1;
+        control->MSEN1 = 0; // Don't care
+      break;
+
+      case pwm_mode_mark_space:
+        control->MODE1 = 0;
+        control->MSEN1 = 1;
+      break;
+
+      case pwm_mode_pwm_algorithm:
+        control->MODE1 = 0;
+        control->MSEN1 = 0;
+      break;
+    }
+
+    control->USEF1 = config->fifoEnable;
+    control->RPTL1 = config->repeatLast;
+    control->POLA1 = config->invert;
+    control->SBIT1 = config->silenceBit;
+  }
+  else
+  {
+    // Disable channel before update
+    control->PWEN2 = 0;
+
+    switch(config->mode)
+    {
+      case pwm_mode_serial:
+        control->MODE2 = 1;
+        control->MSEN2 = 0; // Don't care
+      break;
+
+      case pwm_mode_mark_space:
+        control->MODE2 = 0;
+        control->MSEN2 = 1;
+      break;
+
+      case pwm_mode_pwm_algorithm:
+        control->MODE2 = 0;
+        control->MSEN2 = 0;
+      break;
+    }
+
+    control->USEF2 = config->fifoEnable;
+    control->RPTL2 = config->repeatLast;    
+    control->POLA2 = config->invert;
+    control->SBIT2 = config->silenceBit;
+  }
+}
+
+/**
+  @brief  Enable or disable the target PWM channel
+
+  @param  channel PWM channel to enable
+  @param  enable Enable the channel
+  @retval void
+*/
+void pwmEnable(pwm_channel_t channel, bool enable)
+{
+  assert(pwm != NULL);
+
+  WMB();
+
+  // Set target channel enabel bit
+  if (channel == pwm_channel_1)
+    pwm->CTL.PWEN1 = enable;
+  else
+    pwm->CTL.PWEN2 = enable;
+}

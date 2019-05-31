@@ -10,6 +10,22 @@ typedef enum pwm_channel_t
   pwm_channel_max,
 } pwm_channel_t;
 
+typedef enum pwm_mode_t 
+{
+  pwm_mode_pwm_algorithm,
+  pwm_mode_mark_space,
+  pwm_mode_serial,
+} pwm_mode_t;
+
+typedef struct pwm_configuration_t
+{
+  pwm_mode_t mode;
+  bool       fifoEnable;
+  bool       repeatLast;
+  bool       invert;
+  uint8_t    silenceBit;
+} pwm_configuration_t;
+
 #define PWM_BASE_OFFSET (0x0020C000)
 
 // PWM CTL Register Bits
@@ -111,9 +127,12 @@ typedef struct bcm2837_pwm_t
 
 void pwmInit(void* base);
 void pwmReset(void);
+void pwmClearFifo(void);
 void pwmConfigureDma(bool enable, uint32_t panicThreshold, uint32_t dreqThreshold);
 void pwmSetData(pwm_channel_t channel, uint32_t data);
 void pwmSetRange(pwm_channel_t channel, uint32_t data);
+void pwmConfigure(pwm_channel_t channel, const pwm_configuration_t* config);
+void pwmEnable(pwm_channel_t channel, bool enable);
 
 static_assert(sizeof(pwm_control_t) == sizeof(uint32_t), "pwm_control_t must be 4 bytes.");
 static_assert(sizeof(pwm_status_t) == sizeof(uint32_t), "pwm_status_t must be 4 bytes.");
