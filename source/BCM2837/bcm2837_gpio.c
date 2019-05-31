@@ -17,4 +17,7 @@ void gpioInit(void* base)
   assert(gpio == NULL);
 
   gpio = base;
+
+  WMB();
+  gpio->GPFSELx[1].FSELx2 = GPIO_FUNCTION_AF0;
 }
