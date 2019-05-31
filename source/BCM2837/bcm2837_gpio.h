@@ -7,13 +7,13 @@
   @brief  Internal structures, types and constants
 */
 
-#define GPIO_BASE_OFFSET (0x00200000)
-
 #ifdef BCM2837_EXTENDED_GPIO
 #define GPIO_PIN_COUNT     (54)
 #else
 #define GPIO_PIN_COUNT     (32)
 #endif
+
+#define GPIO_BASE_OFFSET (0x00200000)
 
 typedef enum __attribute__((packed))
 {
