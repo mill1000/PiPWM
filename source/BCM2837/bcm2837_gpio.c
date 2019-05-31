@@ -21,21 +21,6 @@ void gpioInit(void* base)
 }
 
 /**
-  @brief  Fetch the GPIO function select register for the given pin
-
-  @param  pin GPIO pin to fetch function register
-  @retval gpio_function_select_x_t*
-*/
-static volatile gpio_function_select_x_t* gpioGetFunctionSelect(gpio_pin_t pin)
-{
-  assert(gpio != NULL);
-  assert(pin < GPIO_PIN_COUNT);
-
-  // Function selects organized in 5 banks of 10 pins
-  return &gpio->GPFSELx[pin / 10];
-}
-
-/**
   @brief  Set the GPIO pin function
 
   @param  pin GPIO pin to set
@@ -44,10 +29,7 @@ static volatile gpio_function_select_x_t* gpioGetFunctionSelect(gpio_pin_t pin)
 */
 static void gpioSetFunction(gpio_pin_t pin, gpio_function_t function)
 {
-  assert(gpio != NULL);
-  assert(pin < GPIO_PIN_COUNT);
-
-  volatile gpio_function_select_x_t* functionSelect = gpioGetFunctionSelect(pin);
+  volatile gpio_function_select_x_t* functionSelect = &gpio->GPFSELx[pin / 10];
 
   switch (pin % 10)
   {
@@ -76,6 +58,7 @@ void gpioConfigure(gpio_pin_t pin, const gpio_configuration_t* config)
 {
   assert(gpio != NULL);
   assert(config != NULL);
+  assert(pin < GPIO_PIN_COUNT);
 
   WMB();
 
