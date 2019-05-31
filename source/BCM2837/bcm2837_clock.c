@@ -107,9 +107,7 @@ void clockWaitBusy(clock_peripheral_t peripheral)
   @brief  Configure the target peripheral clock source and divisor
 
   @param  peripheral Target peripheral clock to configure
-  @param  source Clock source for clock generator
-  @param  divi Integer portion of clock divider
-  @param  divf Fractional portion of clock divider
+  @param  config Clock configuration to load
   @retval void
 */
 void clockConfigure(clock_peripheral_t peripheral, const clock_configuration_t* config)
