@@ -3,15 +3,9 @@
 
 #include "bcm2837.h"
 
-typedef enum clock_peripheral_t
-{
-  clock_peripheral_gp0,
-  clock_peripheral_gp1,
-  clock_peripheral_gp2,
-  clock_peripheral_pcm,
-  clock_peripheral_pwm,
-  clock_peripheral_max,
-} clock_peripheral_t;
+/**
+  @brief  Internal structures, types and constants
+*/
 
 #define CLOCK_BASE_OFFSET (0x00101000)
 #define CLOCK_GP0_OFFSET  (0x70)
@@ -43,15 +37,6 @@ typedef enum __attribute__((packed))
   // 8 - 15 also GND
 } CLOCK_SOURCE;
 
-typedef struct clock_configuration_t
-{
-  CLOCK_SOURCE source;
-  CLOCK_MASH   mash;
-  bool         invert;
-  uint16_t     divi;
-  uint16_t     divf;
-} clock_configuration_t;
-
 typedef struct clock_control_t
 {
   uint32_t SRC : 4;
@@ -77,6 +62,47 @@ typedef struct bcm2837_clock_t
   volatile clock_control_t  CTL;
   volatile clock_divisor_t  DIV;
 } bcm2837_clock_t;
+
+/**
+  @brief  External structures, types and interfaces.
+*/
+
+typedef enum clock_peripheral_t
+{
+  clock_peripheral_gp0,
+  clock_peripheral_gp1,
+  clock_peripheral_gp2,
+  clock_peripheral_pcm,
+  clock_peripheral_pwm,
+  clock_peripheral_max,
+} clock_peripheral_t;
+
+typedef enum clock_source_t
+{
+  clock_source_ground     = CLOCK_SOURCE_GND,
+  clock_source_oscillator = CLOCK_SOURCE_OSCILLATOR,
+  clock_source_plla       = CLOCK_SOURCE_PLLA,
+  clock_source_pllc       = CLOCK_SOURCE_PLLC,
+  clock_source_plld       = CLOCK_SOURCE_PLLD,
+  clock_source_hdmi_aux   = CLOCK_SOURCE_HDMI_AUX,
+} clock_source_t;
+
+typedef enum clock_mash_filter_t
+{
+  clock_mash_filter_none    = CLOCK_MASH_NONE,
+  clock_mash_filter_1_stage = CLOCK_MASH_1_STAGE,
+  clock_mash_filter_2_stage = CLOCK_MASH_2_STAGE,
+  clock_mash_filter_3_stage = CLOCK_MASH_3_STAGE,
+} clock_mash_filter_t;
+
+typedef struct clock_configuration_t
+{
+  clock_source_t      source;
+  clock_mash_filter_t mash;
+  bool                invert;
+  uint16_t            divi;
+  uint16_t            divf;
+} clock_configuration_t;
 
 void clockInit(void* base);
 void clockConfigure(clock_peripheral_t peripheral, const clock_configuration_t* config);
