@@ -64,12 +64,12 @@ void* memoryAllocate(size_t length)
 }
 
 /**
-  @brief  Read the pagemap entry for the page containing the virtual address
+  @brief  Calculate the physical address of a given virtual address using the process pagemap
 
-  @param  virtual Virtual memory address to read pagemap entry for
-  @retval none
+  @param  virtual Virtual memory address to convert to physical
+  @retval void* - Physical address
 */
-void memoryReadPagemap(void* virtual)
+void* memoryVirtualToPhysical(void* virtual)
 {
   const size_t pageSize = sysconf(_SC_PAGE_SIZE);
 
@@ -78,7 +78,7 @@ void memoryReadPagemap(void* virtual)
   if (file == -1)
   {
     LOGE(TAG, "Failed to open /proc/self/pagemap. Error: %s", strerror(errno));
-    return;
+    return NULL;
   }
 
   // Calculate offset into file for the target address
@@ -91,13 +91,13 @@ void memoryReadPagemap(void* virtual)
 
   int32_t result = close(file);
   if (result == -1)
-    LOGE(TAG, "Failed to close /proc/self/pagemap. Error: %s", strerror(errno));
+    LOGW(TAG, "Failed to close /proc/self/pagemap. Error: %s", strerror(errno));
 
   if (read != sizeof(pagemap_entry_t))
   {
     LOGE(TAG, "Failed to read complete entry from pagemap.");
-    return;
+    return NULL;
   }
 
-  void* physical = (void*)((uint32_t)entry.pfn * pageSize) + ((uint32_t)virtual % pageSize);
+  return  (void*)((uint32_t)entry.pfn * pageSize) + ((uint32_t)virtual % pageSize);;
 }

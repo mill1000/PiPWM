@@ -20,6 +20,6 @@ static_assert(sizeof(pagemap_entry_t) == sizeof(uint64_t), "pagemap_entry_t must
 
 void* memoryMapPhysical(off_t offset, size_t length);
 void* memoryAllocate(size_t length);
-void memoryReadPagemap(void* virtual);
+void* memoryVirtualToPhysical(void* virtual);
 
 #endif
