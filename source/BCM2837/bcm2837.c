@@ -1,8 +1,4 @@
 #include <stddef.h>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <string.h>
-#include <errno.h>
 #include <assert.h>
 
 #include <bcm_host.h>
@@ -12,41 +8,9 @@
 #include "bcm2837_clock.h"
 #include "bcm2837_gpio.h"
 #include "log.h"
+#include "memory.h"
 
 #define TAG "BCM2837"
-
-/**
-  @brief  Map physical memory located at offset into the virtual memory space
-
-  @param  offset Offset in physical memory
-  @param  length Length of memory to map
-  @retval void* - Address of mapped memory in virtual space
-*/
-static void* mapPhysicalMemory(off_t offset, size_t length)
-{
-  int32_t file = open("/dev/mem", O_RDWR);
-  if (file == -1)
-  {
-    LOGF(TAG, "Failed to open /dev/mem. Error: %s", strerror(errno));
-    return NULL;
-  }
-
-  // Map the physical memory (via /dev/mem) located at offset into our virtual memory
-  void* virtual = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED, file, offset);
-  if (virtual == MAP_FAILED)
-  {
-    LOGF(TAG, "Failed to map physical address 0x%X of length %d. Error: %s", offset, length, strerror(errno));
-    return NULL;
-  }
-
-  int32_t result = close(file);
-  if (result == -1)
-    LOGE(TAG, "Failed to close /dev/mem. Error: %s", strerror(errno));
-
-  LOGI(TAG, "Mapped physical address 0x%X to virtual address 0x%X", offset, virtual);
-
-  return virtual;
-}
 
 /**
   @brief  Initalize BCM2837 peripheral modules
@@ -70,7 +34,7 @@ void bcm2837_init()
   size_t length = bcm_host_get_peripheral_size();
 
   // Map to virtual memory
-  virtualBase = mapPhysicalMemory(physicalBase, length);
+  virtualBase = memoryMapPhysical(physicalBase, length);
   if (virtualBase == NULL)
   {
     LOGF(TAG, "Failed to map physical memory.");
