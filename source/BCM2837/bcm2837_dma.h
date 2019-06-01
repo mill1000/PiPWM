@@ -3,7 +3,9 @@
 
 #include "bcm2837.h"
 
-#define DMA_MAX_SUPPORTED_CHANNEL (14)
+/**
+  @brief  Internal structures, types and constants
+*/
 
 #define DMA_BASE_OFFSET       (0x00007000)
 #define DMA_CHANNEL_OFFSET    (0x100)
@@ -204,7 +206,7 @@ typedef enum __attribute__((packed))
   DMA_DREQ_UART_TX      = 12,
   DMA_DREQ_SD_HOST      = 13,
   DMA_DREQ_UART_RX      = 14,
-  DMA_DREQ_DSI_         = 15, // Duplicate?
+  //DMA_DREQ_DSI_         = 15, // Duplicate?
   DMA_DREQ_SLIMBUX_MCTX = 16,
   DMA_DREQ_HDMI         = 17,
   DMA_DREQ_SLIMBUS_MCRX = 18,
@@ -259,5 +261,29 @@ static_assert(sizeof(dma_enable_t) == sizeof(uint32_t), "dma_enable_t must be 4 
 static_assert(sizeof(dma_control_block_t) == 8 * sizeof(uint32_t), "dma_control_block_t must be 32 bytes.");
 
 static_assert(sizeof(bcm2837_dma_channel_t) == 9 * sizeof(uint32_t), "bcm2837_dma_channel_t must be 36 bytes.");
+
+/**
+  @brief  External structures, types and interfaces.
+*/
+typedef enum dma_channel_t
+{
+  dma_channel_0,
+  dma_channel_1,
+  dma_channel_2,
+  dma_channel_3,
+  dma_channel_4,
+  dma_channel_5,
+  dma_channel_6,
+  dma_channel_7,
+  dma_channel_8,
+  dma_channel_9,
+  dma_channel_10,
+  dma_channel_11,
+  dma_channel_12,
+  dma_channel_13,
+  dma_channel_14,
+  // Sorry channel 15, you're weird
+  dma_channel_max,
+} dma_channel_t;
 
 #endif
