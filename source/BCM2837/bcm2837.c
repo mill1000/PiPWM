@@ -7,6 +7,7 @@
 #include "bcm2837_pwm.h"
 #include "bcm2837_clock.h"
 #include "bcm2837_gpio.h"
+#include "bcm2837_dma.h"
 #include "log.h"
 #include "memory.h"
 
@@ -41,12 +42,9 @@ void bcm2837_init()
     return;
   }
 
-  // Initalize PWM module at it's base address
+  // Initalize modules at their base addresses
   pwmInit(virtualBase + PWM_BASE_OFFSET);
-
-  // Initlaize clock module at it's base address
   clockInit(virtualBase + CLOCK_BASE_OFFSET);
-
-  // Initlaize clock module at it's base address
   gpioInit(virtualBase + GPIO_BASE_OFFSET);
+  dmaInit(virtualBase + DMA_BASE_OFFSET);
 }

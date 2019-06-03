@@ -286,4 +286,5 @@ typedef enum dma_channel_t
   dma_channel_max,
 } dma_channel_t;
 
+void dmaInit(void* base);
 #endif
