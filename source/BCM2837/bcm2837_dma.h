@@ -229,11 +229,11 @@ typedef struct dma_control_block_t dma_control_block_t;
 struct dma_control_block_t
 {
   dma_transfer_information_t  transferInformation; // TI
-  uint32_t                    sourceAddress; // SOURCE_AD
-  uint32_t                    destinationAddress; // DEST_AD
+  void*                       sourceAddress; // SOURCE_AD
+  void*                       destinationAddress; // DEST_AD
   dma_transfer_length_t       transferLength; // TXFR_LEN
   dma_stride_t                stride; // STRIDE
-  dma_transfer_information_t* nextControlBlock; // NEXTCONBK
+  dma_control_block_t*        nextControlBlock; // NEXTCONBK
   uint32_t                    _reserved[2];
 };
 
