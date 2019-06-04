@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include "bcm2837_dma.h"
+#include "log.h"
 
 static void* dma = NULL;
 
@@ -89,4 +90,39 @@ void dmaEnable(dma_channel_t channel, bool enable)
   WMB();
 
   handle->CS.ACTIVE = enable;
+}
+
+void dmaDump(dma_channel_t channel)
+{
+  volatile uint32_t* handle = (volatile uint32_t*) dmaGetChannel(channel);
+
+  LOGI("DMA", "Channel %d", channel);
+  LOGI("DMA", "CS\t\t0x%08X", handle[0]);
+  LOGI("DMA", "CONBLK_AD\t0x%08X", handle[1]);
+  LOGI("DMA", "TI\t\t0x%08X", handle[2]);
+  LOGI("DMA", "SOURCE_AD\t0x%08X", handle[3]);
+  LOGI("DMA", "DEST_AD\t\t0x%08X", handle[4]);
+  LOGI("DMA", "TXFR_LEN\t0x%08X", handle[5]);
+  LOGI("DMA", "STRIDE\t\t0x%08X", handle[6]);
+  LOGI("DMA", "NEXTCONBK\t0x%08X", handle[7]);
+  LOGI("DMA", "DEBUG\t\t0x%08X", handle[8]);
+
+  RMB();
+}
+
+void dmaDumpControlBlock(const dma_control_block_t* control)
+{
+  const volatile uint32_t* data = (volatile uint32_t*) control;
+
+  LOGI("DMA", "Control Block %X", control);
+  LOGI("DMA", "TI\t\t0x%08X", data[0]);
+  LOGI("DMA", "SOURCE_AD\t0x%08X", data[1]);
+  LOGI("DMA", "DEST_AD\t\t0x%08X", data[2]);
+  LOGI("DMA", "TXFR_LEN\t0x%08X", data[3]);
+  LOGI("DMA", "STRIDE\t\t0x%08X", data[4]);
+  LOGI("DMA", "NEXTCONBK\t0x%08X", data[5]);
+  LOGI("DMA", "R1\t\t0x%08X", data[6]);
+  LOGI("DMA", "R2\t\t0x%08X", data[7]);
+
+  RMB();
 }
