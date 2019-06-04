@@ -30,5 +30,5 @@ static bcm2837_dma_channel_t* dmaGetChannel(dma_channel_t channel)
   assert(dma != NULL);
   assert(channel < dma_channel_max);
 
-  return (bcm2837_dma_channel_t*) dma + (channel * DMA_CHANNEL_OFFSET);
+  return (bcm2837_dma_channel_t*) (dma + (channel * DMA_CHANNEL_OFFSET));
 }
