@@ -153,26 +153,26 @@ void main()
   dmaDumpControlBlock(control);
 
   // Reset target channel
-  dmaReset(dma_channel_5);
+  dmaReset(dma_channel_13);
 
   // Configure and enable to begin transfer
-  dmaSetControlBlock(dma_channel_5, (void*) bus);
-  dmaEnable(dma_channel_5, true);
+  dmaSetControlBlock(dma_channel_13, (void*) bus);
+  dmaEnable(dma_channel_13, true);
 
-  dmaDump(dma_channel_5);  
+  dmaDump(dma_channel_13);  
 
   pwmConfigureDma(true, 7,7);
 
   // Let DMA function
   sleep(1);
   
-  dmaDump(dma_channel_5);  
+  dmaDump(dma_channel_13);  
   
 
   //for (uint8_t i = 0; i < 10; i++)
       //LOGI(TAG, "Src %d, Dst %d", data[i], data2[i]);
 
-  dmaReset(dma_channel_5);
+  dmaReset(dma_channel_13);
   pwmReset();
 
   //mem_free(mb, ref);
