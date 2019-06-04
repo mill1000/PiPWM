@@ -113,6 +113,12 @@ void pwmReset()
   pwm->DMAC.ENAB = 0;
   pwm->DMAC.PANIC = 0x7;
   pwm->DMAC.DREQ = 0x7;
+
+  pwm->DAT1 = 0;
+  pwm->RNG1 = 0;
+  
+  pwm->DAT2 = 0;
+  pwm->RNG2 = 0;
 }
 
 /**
