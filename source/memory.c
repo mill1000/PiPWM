@@ -99,5 +99,7 @@ void* memoryVirtualToPhysical(void* virtual)
     return NULL;
   }
 
+  assert(entry.present && !entry.swapped);
+
   return  (void*)((uint32_t)entry.pfn * pageSize) + ((uint32_t)virtual % pageSize);;
 }
