@@ -245,4 +245,7 @@ typedef enum dma_channel_t
 } dma_channel_t;
 
 void dmaInit(void* base);
+void dmaReset(dma_channel_t channel);
+void dmaSetControlBlock(dma_channel_t channel, const dma_control_block_t* control);
+void dmaEnable(dma_channel_t channel, bool enable);
 #endif
