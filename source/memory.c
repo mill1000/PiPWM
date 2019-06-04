@@ -18,7 +18,7 @@
 */
 void* memoryMapPhysical(off_t offset, size_t length)
 {
-  int32_t file = open("/dev/mem", O_RDWR);
+  int32_t file = open("/dev/mem", O_RDWR | O_SYNC);
   if (file == -1)
   {
     LOGF(TAG, "Failed to open /dev/mem. Error: %s", strerror(errno));
