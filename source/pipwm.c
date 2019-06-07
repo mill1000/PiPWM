@@ -13,7 +13,6 @@
 #include "bcm2837.h"
 #include "log.h"
 #include "memory.h"
-#include "mailbox.h"
 #include "utils.h"
 
 #define TAG "MAIN"
@@ -75,27 +74,20 @@ void main()
   //void* bus = physical +  bcm_host_get_sdram_address();
 
   // udmabuf provided buffer
-  void* physical = (void*)0x3ad0a000;//memoryVirtualToPhysical(virtual);
-  void* virtual = memoryMapPhysical((off_t)physical, 4096);
-  void* bus = physical +  bcm_host_get_sdram_address();
+  //void* physical = (void*)0x3ad0a000;//memoryVirtualToPhysical(virtual);
+  //void* virtual = memoryMapPhysical((off_t)physical, 4096);
+  //void* bus = physical +  bcm_host_get_sdram_address();
 
 
   // Confirmed working on mem to mem transfer
   // Dump function does not always display proper data
-  //int mb = mbox_open();
-	//int ref = mem_alloc(mb, 4096, 4096, 1 << 2);
-	//if (ref < 0) {
-	//	LOGF(TAG, "Failed to alloc memory from VideoCore\n");
-	//}
-	//void* bus_addr = mem_lock(mb, ref);
-	//if (bus_addr == NULL) {
-	//	mem_free(-1, ref);
-	//	LOGF(TAG, "Failed to lock memory\n");
-	//}
-  //LOGI(TAG, "Bus add %X", bus_addr);
-  //void* bus = (void*)bus_addr;
-  //void* physical = bus - bcm_host_get_sdram_address();
-  //void* virtual = memoryMapPhysical((off_t)physical, 4096);
+  memory_physical_t memory = memoryAllocatePhysical(4096);
+  if (memory.address == NULL)
+    LOGF(TAG, "Failed to allocate physical memory.");
+	
+  void* bus = memory.address;
+  void* physical = bus - bcm_host_get_sdram_address();
+  void* virtual = memoryMapPhysical((off_t)physical, 4096);
 
   assert(physical != NULL);
   assert(bus != NULL);
@@ -175,8 +167,7 @@ void main()
   dmaReset(dma_channel_13);
   pwmReset();
 
-  //mem_free(mb, ref);
-  //mbox_close(mb);
+  memoryReleasePhysical(&memory);
   
   return;
 }
