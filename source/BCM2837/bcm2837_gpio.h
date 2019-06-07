@@ -210,6 +210,7 @@ typedef struct gpio_configuration_t
 
 void gpioInit(void* base);
 void gpioConfigure(gpio_pin_t pin, const gpio_configuration_t* config);
+void gpioConfigureMask(gpio_pin_mask_t mask, const gpio_configuration_t* config);
 void gpioSet(gpio_pin_t pin);
 void gpioSetMask(gpio_pin_mask_t mask);
 void gpioClear(gpio_pin_t pin);

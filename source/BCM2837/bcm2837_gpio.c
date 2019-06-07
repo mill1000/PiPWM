@@ -140,6 +140,26 @@ void gpioConfigure(gpio_pin_t pin, const gpio_configuration_t* config)
 }
 
 /**
+  @brief  Configure a group of pins indicated by the provided mask
+
+  @param  mask GPIO pin mask to configure
+  @param  config GPIO configuration to set
+  @retval void
+*/
+void gpioConfigureMask(gpio_pin_mask_t mask, const gpio_configuration_t* config)
+{
+  gpio_pin_t pin = 0;
+  while (mask)
+  {
+    if (mask & 0x01)
+      gpioConfigure(pin, config);
+
+    mask >>= 1;
+    pin++;
+  }
+}
+
+/**
   @brief  Set the target GPIO pin
 
   @param  pin GPIO pin to set
