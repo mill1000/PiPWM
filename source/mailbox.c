@@ -187,3 +187,41 @@ int32_t mailboxReleaseMemory(uint32_t handle)
 
    return response->tag.status;
 }
+
+/**
+  @brief  Fetch the DMA channel mask of in-use channel
+
+  @param  none
+  @retval uint32_t - 0 indicates in use, 1 available
+*/
+uint32_t mailboxGetDmaChannelMask()
+{
+   mailbox_dma_channel_request_t request;
+   memset(&request, 0, sizeof(mailbox_dma_channel_request_t));
+
+   request.header.length = sizeof(mailbox_dma_channel_request_t);
+   request.header.code = 0;
+
+   request.tag.header.identifier = mailbox_tag_id_get_dma_channels;
+   request.tag.header.length = 4;
+   request.tag.header.code = 0;
+
+   request.tag.pad = 0;
+
+   request.trailer.end = 0;
+
+   if (mailboxSend(&request) < 0)
+      return -1;
+
+   mailbox_dma_channel_response_t* response = (mailbox_dma_channel_response_t*) &request;
+
+   if ((response->header.code & MAILBOX_CODE_SUCCESS) != MAILBOX_CODE_SUCCESS)
+      return -1;
+      
+
+   if ((response->tag.header.code & MAILBOX_CODE_SUCCESS) != MAILBOX_CODE_SUCCESS)
+      return -1;
+
+   LOGI(TAG, "DMA Channels %X", response->tag.mask);
+   return response->tag.mask;
+}

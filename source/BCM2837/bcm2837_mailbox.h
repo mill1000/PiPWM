@@ -50,6 +50,7 @@ typedef struct mailbox_dma_channel_request_t
   struct
   {
     mailbox_tag_header_t header;
+    uint32_t pad;
   } tag;
   mailbox_message_trailer_t trailer;
 } mailbox_dma_channel_request_t;
