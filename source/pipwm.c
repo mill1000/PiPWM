@@ -14,16 +14,19 @@
 #include "log.h"
 #include "memory.h"
 #include "utils.h"
+#include "mailbox.h"
 
 #define TAG "MAIN"
 
 void main()
 {
+  LOGI(TAG, "Channels %X", mailboxGetDmaChannelMask());
+
   bcm2837_init();
 
   gpio_configuration_t gpioConfig;
   gpioConfig.eventDetect = gpio_event_detect_none;
-  gpioConfig.function = gpio_function_af0;
+  gpioConfig.function = gpio_function_output;
   gpioConfig.pull = gpio_pull_no_change;
   gpioConfigure(12, &gpioConfig);
   
@@ -31,7 +34,7 @@ void main()
   clockConfig.source = CLOCK_SOURCE_OSCILLATOR;
   clockConfig.mash = CLOCK_MASH_NONE;
   clockConfig.invert = false;
-  clockConfig.divi = 300;
+  clockConfig.divi = 192;
   clockConfig.divf = 0;
 
   LOGI(TAG, "Configuring clock");
@@ -51,15 +54,13 @@ void main()
 
   LOGI(TAG, "Configuring PWM");
   pwmConfigure(pwm_channel_1, &pwmConfig);
-  pwmSetRange(pwm_channel_1, 1 << 10);
-
-  LOGI(TAG, "Enabling PWM");
-  pwmEnable(pwm_channel_1, true);
-
-  //pwmSetData(pwm_channel_1, 256);
-  //return;
+  pwmSetRange(pwm_channel_1, 1000);
 
   
+
+  //pwmSetData(pwm_channel_1, 0);
+
+  gpioClear(12);
 
   // Not wokring reliable. Allocation -> physical -> remapping
   // Transfers do occur occasionally, but sometimes source data is missing as well
@@ -95,36 +96,35 @@ void main()
 
   LOGI(TAG, "Physical addr %X, Bus addr %X, Virtual %X", physical, bus, virtual);
   bcm2837_pwm_t* pwmBus = (bcm2837_pwm_t*) (0x7e000000 + PWM_BASE_OFFSET);
+  bcm2837_gpio_t* gpioBus = (bcm2837_gpio_t*) (0x7e000000 + GPIO_BASE_OFFSET);
   
-
-  uint32_t* data = virtual + 2048;
-  data[0] = 100;
-  data[1] = 500;
-  data[2] = 300;
-  data[3] = 400;
-  data[4] = 500;
-  data[5] = 600;
-  data[6] = 700;
-  data[7] = 800;
-  data[8] = 900;
-  data[9] = 1000;//getpid();
-
-  //uint32_t* data2 = virtual + 3092;
-  //data2[0] = 0;
-  //data2[1] = 0;
-  //data2[2] = 0;
-  //data2[3] = 0;
-  //data2[4] = 0;
-  //data2[5] = 0;
-  //data2[6] = 0;
-  //data2[7] = 0;
-  //data2[8] = 0;
-  //data2[9] = 0;
-
-  //for (uint8_t i = 0; i < 10; i++)
-   // LOGI(TAG, "Src %d, Dst %d", data[i], data2[i]);
+  uint32_t* vMask = virtual + 2048;
+  uint32_t* bMask = bus + 2048;
   
-  dma_control_block_t* control = (dma_control_block_t*) virtual;
+  *vMask = 1 << 12;
+
+  dma_control_block_t* vBlocks = (dma_control_block_t*) virtual;
+  dma_control_block_t* bBlocks = (dma_control_block_t*) bus;
+
+  dma_control_block_t* control = &vBlocks[0];
+  memset((void*)control, 0, sizeof(dma_control_block_t));
+
+  control->transferInformation.NO_WIDE_BURSTS = 1;
+  control->transferInformation.PERMAP = 0;
+  control->transferInformation.SRC_DREQ = 0;
+  control->transferInformation.DEST_DREQ = 0;
+  control->transferInformation.WAIT_RESP = 1;
+  control->transferInformation.SRC_INC = 1;
+  control->transferInformation.DEST_INC = 0;
+  control->transferInformation.INTEN = 0;
+
+  control->sourceAddress = bMask;
+  control->destinationAddress = (void*) &gpioBus->GPSETx[0].SET;
+  control->transferLength.XLENGTH = 1 * sizeof(uint32_t);
+
+  control->nextControlBlock = (dma_control_block_t*)  &bBlocks[1];
+
+  control = &vBlocks[1];
   memset((void*)control, 0, sizeof(dma_control_block_t));
 
   control->transferInformation.NO_WIDE_BURSTS = 1;
@@ -132,42 +132,83 @@ void main()
   control->transferInformation.SRC_DREQ = 1;
   control->transferInformation.DEST_DREQ = 1;
   control->transferInformation.WAIT_RESP = 1;
+  control->transferInformation.SRC_INC = 0;
+  control->transferInformation.DEST_INC = 0;
+  control->transferInformation.INTEN = 0;
+
+  control->sourceAddress = bMask;
+  control->destinationAddress = (void*) &pwmBus->FIF1;
+  control->transferLength.XLENGTH = 1 * sizeof(uint32_t);
+
+  control->nextControlBlock = (dma_control_block_t*) &bBlocks[2];
+
+  control = &vBlocks[2];
+  memset((void*)control, 0, sizeof(dma_control_block_t));
+
+  control->transferInformation.NO_WIDE_BURSTS = 1;
+  control->transferInformation.PERMAP = 0;
+  control->transferInformation.SRC_DREQ = 0;
+  control->transferInformation.DEST_DREQ = 0;
+  control->transferInformation.WAIT_RESP = 1;
   control->transferInformation.SRC_INC = 1;
   control->transferInformation.DEST_INC = 0;
   control->transferInformation.INTEN = 0;
 
-  control->sourceAddress = bus + 2048;
-  control->destinationAddress = (void*) &pwmBus->FIF1;
-  control->transferLength.XLENGTH = 10 * sizeof(uint32_t);
-  
-  control->nextControlBlock = (dma_control_block_t*) bus;
+  control->sourceAddress = bMask;
+  control->destinationAddress = (void*) &gpioBus->GPCLRx[0].CLR;
+  control->transferLength.XLENGTH = 1 * sizeof(uint32_t);
 
-  dmaDumpControlBlock(control);
+  control->nextControlBlock = (dma_control_block_t*)  &bBlocks[3];
+
+  control = &vBlocks[3];
+  memset((void*)control, 0, sizeof(dma_control_block_t));
+
+  control->transferInformation.NO_WIDE_BURSTS = 1;
+  control->transferInformation.PERMAP = DMA_DREQ_PWM;
+  control->transferInformation.SRC_DREQ = 1;
+  control->transferInformation.DEST_DREQ = 1;
+  control->transferInformation.WAIT_RESP = 1;
+  control->transferInformation.SRC_INC = 0;
+  control->transferInformation.DEST_INC = 0;
+  control->transferInformation.INTEN = 0;
+
+  control->sourceAddress = bMask;
+  control->destinationAddress = (void*) &pwmBus->FIF1;
+  control->transferLength.XLENGTH = 1 * sizeof(uint32_t);
+
+  control->nextControlBlock = (dma_control_block_t*) &bBlocks[0];
+
+  dmaDumpControlBlock(&vBlocks[0]);
+  dmaDumpControlBlock(&vBlocks[1]);
+  dmaDumpControlBlock(&vBlocks[2]);
 
   // Reset target channel
-  dmaReset(dma_channel_13);
+  dmaReset(dma_channel_5);
+
+  //dmaDump(dma_channel_5);  
 
   // Configure and enable to begin transfer
-  dmaSetControlBlock(dma_channel_13, (void*) bus);
-  dmaEnable(dma_channel_13, true);
+  dmaSetControlBlock(dma_channel_5, (void*) bBlocks);
+  dmaEnable(dma_channel_5, true);
 
-  dmaDump(dma_channel_13);  
-
-  pwmConfigureDma(true, 7,7);
+  //dmaDump(dma_channel_5);  
+  LOGI(TAG, "Enabling PWM");
+  pwmConfigureDma(true, 15,15);
+  pwmEnable(pwm_channel_1, true);
 
   // Let DMA function
-  sleep(1);
-  
-  dmaDump(dma_channel_13);  
-  
+  sleep(2);
+
+  dmaDump(dma_channel_5);  
 
   //for (uint8_t i = 0; i < 10; i++)
-      //LOGI(TAG, "Src %d, Dst %d", data[i], data2[i]);
+//    LOGI(TAG, "Src %d, Dst %d", data[i], data2[i]);
 
-  dmaReset(dma_channel_13);
+  dmaReset(dma_channel_5);
   pwmReset();
 
   memoryReleasePhysical(&memory);
-  
+  gpioClear(12);
+
   return;
 }
