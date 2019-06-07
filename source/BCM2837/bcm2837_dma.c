@@ -65,7 +65,7 @@ void dmaReset(dma_channel_t channel)
 */
 void dmaSetControlBlock(dma_channel_t channel, const dma_control_block_t* control)
 {
-  // Ensure block is 256 byte aligned
+  // Ensure block is 256 bit aligned
   assert(((uint32_t)control & 0x1F) == 0);
 
   bcm2837_dma_channel_t* handle = dmaGetChannel(channel);
