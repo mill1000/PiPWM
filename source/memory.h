@@ -16,10 +16,18 @@ typedef struct pagemap_entry_t
   uint64_t present : 1;
 } pagemap_entry_t;
 
+typedef struct memory_physical_t
+{
+  int32_t handle;
+  void*   address;
+} memory_physical_t;
+
 static_assert(sizeof(pagemap_entry_t) == sizeof(uint64_t), "pagemap_entry_t must be 64 bits.");
 
 void* memoryMapPhysical(off_t offset, size_t length);
-void* memoryAllocate(size_t length);
+void* memoryAllocateVirtual(size_t length);
 void* memoryVirtualToPhysical(void* virtual);
+memory_physical_t memoryAllocatePhysical(size_t length);
+int32_t memoryReleasePhysical(const memory_physical_t* memory);
 
 #endif
