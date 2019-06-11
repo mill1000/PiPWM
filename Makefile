@@ -10,7 +10,7 @@ DEPS := $(OBJS:.o=.d)
 INC_DIRS := $(shell find $(SRC_DIRS) -type d) /opt/vc/include
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-LDFLAGS := -L/opt/vc/lib -lbcm_host 
+LDFLAGS := -L/opt/vc/lib -lbcm_host -lm
 CPPFLAGS ?= $(INC_FLAGS) -Wall
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
