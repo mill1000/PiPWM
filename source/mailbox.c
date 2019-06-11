@@ -222,6 +222,5 @@ uint32_t mailboxGetDmaChannelMask()
    if ((response->tag.header.code & MAILBOX_CODE_SUCCESS) != MAILBOX_CODE_SUCCESS)
       return -1;
 
-   LOGI(TAG, "DMA Channels %X", response->tag.mask);
    return response->tag.mask;
 }
