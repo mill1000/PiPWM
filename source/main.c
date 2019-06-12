@@ -72,7 +72,7 @@ int main()
   piPwm_setDutyCycle(channel, .25);
   sleep(2);
 
-  piPwm_setDutyCycle(channel, .75);
+  piPwm_setPulseWidth(channel, tStep_s);
   sleep(2);
 
   piPwm_releaseChannel(channel);
