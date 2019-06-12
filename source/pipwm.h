@@ -6,6 +6,7 @@
 #include "bcm2837_clock.h"
 #include "bcm2837_gpio.h"
 #include "bcm2837.h"
+#include "memory.h"
 
 typedef struct pipwm_control_t
 {
@@ -27,5 +28,6 @@ void piPwm_initialize(uint16_t divi, uint16_t divf, uint16_t range);
 void piPwm_shutdown(void);
 pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_t pinMask, double frequency_Hz);
 void piPwm_freeChannel(pipwm_channel_t* channel);
-
+void piPwm_enableChannel(const pipwm_channel_t* channel, bool enable);
+void piPwm_setRatio(pipwm_channel_t* channel, double ratio);
 #endif
