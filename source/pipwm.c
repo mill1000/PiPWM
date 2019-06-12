@@ -1,11 +1,7 @@
-#include <sys/mman.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include <bcm_host.h>
-#include <float.h>
 
 #include "bcm2837_pwm.h"
 #include "bcm2837_dma.h"
