@@ -67,13 +67,13 @@ int main()
   
   piPwm_enableChannel(channel, true);
 
-  piPwm_setRatio(channel, .25);
+  piPwm_setDutyCycle(channel, .25);
   sleep(2);
 
-  piPwm_setRatio(channel, .75);
+  piPwm_setDutyCycle(channel, .75);
   sleep(2);
 
-  piPwm_freeChannel(channel);
+  piPwm_releaseChannel(channel);
 
   piPwm_shutdown();
 

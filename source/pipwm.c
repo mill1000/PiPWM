@@ -89,7 +89,7 @@ void piPwm_shutdown()
   for (uint8_t i = 0; i < dma_channel_max; i++)
   {
     if (activeChannels[i] != NULL)
-      piPwm_freeChannel(activeChannels[i]);
+      piPwm_releaseChannel(activeChannels[i]);
   }
 
   // Disable the PWM timebase
@@ -273,7 +273,7 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
   @param  channel Previously initialize PiPWM channel
   @retval none
 */
-void piPwm_freeChannel(pipwm_channel_t* channel)
+void piPwm_releaseChannel(pipwm_channel_t* channel)
 {
   // Shut down DMA channel
   dmaEnable(channel->dmaChannel, false);
@@ -308,27 +308,43 @@ void piPwm_enableChannel(const pipwm_channel_t* channel, bool enable)
 }
 
 /**
-  @brief  Set the output duty cycle of the desired channel
+  @brief  Set the output duty cycle of the target channel
 
   @param  channel Previously initialize PiPWM channel
-  @param  ratio PWM duty cycel to set
+  @param  dutyCycle PWM duty cycle to set
   @retval none
 */
-void piPwm_setRatio(pipwm_channel_t* channel, double ratio)
+void piPwm_setDutyCycle(pipwm_channel_t* channel, double dutyCycle)
 {
-  // Force ratio to 0 if desired results in no pulse
-  if (round(ratio * channel->steps) < 1)
-    ratio = 0;
+  // Force dutyCycle to 0 if desired results in no pulse
+  if (round(dutyCycle * channel->steps) < 1)
+    dutyCycle = 0;
 
-  // Force ratio to 1 if desired would result in always full pulse
-  if (round(ratio * channel->steps) == channel->steps)
-    ratio = 1;
+  // Force dutyCycle to 1 if desired would result in always full pulse
+  if (round(dutyCycle * channel->steps) == channel->steps)
+    dutyCycle = 1;
 
   // Adjust pinmaks as necessary to eliminate glitches
-  channel->vControl->setMask = (ratio > 0) ? channel->pinMask : 0;
-  channel->vControl->clearMask = (ratio < 1) ? channel->pinMask : 0;
+  channel->vControl->setMask = (dutyCycle > 0) ? channel->pinMask : 0;
+  channel->vControl->clearMask = (dutyCycle < 1) ? channel->pinMask : 0;
 
-  // Update delay structures for new ratio
-  channel->vControl->controlBlocks[1].transferLength.XLENGTH = ratio * channel->steps * sizeof(uint32_t);
-  channel->vControl->controlBlocks[3].transferLength.XLENGTH = (1 - ratio) * channel->steps * sizeof(uint32_t);
+  // Update delay structures for new dutyCycle
+  channel->vControl->controlBlocks[1].transferLength.XLENGTH = dutyCycle * channel->steps * sizeof(uint32_t);
+  channel->vControl->controlBlocks[3].transferLength.XLENGTH = (1 - dutyCycle) * channel->steps * sizeof(uint32_t);
+}
+
+/**
+  @brief  Set the output pulse width of the target channel
+
+  @param  channel Previously initialize PiPWM channel
+  @param  pulseWidth_s Pulse width in seconds
+  @retval none
+*/
+void piPwm_setPulseWidth(pipwm_channel_t* channel, double pulseWidth_s)
+{
+  // Calclate maximum pulse width possible
+  double tMax_s = tStep_s * channel->steps;
+
+  // Calculate duty cycle and pass
+  piPwm_setDutyCycle(channel, pulseWidth_s / tMax_s);
 }
