@@ -85,7 +85,7 @@ void piPwm_initialize(uint16_t divi, uint16_t divf, uint16_t range)
 */
 void piPwm_shutdown()
 {
-  LOGI(TAG, "Shutting down.")
+  LOGI(TAG, "Shutting down.");
 
   // Free any initalized channels
   for (uint8_t i = 0; i < dma_channel_max; i++)
