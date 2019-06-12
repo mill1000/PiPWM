@@ -203,6 +203,15 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
     return NULL;
   }
 
+  // Validate that desired frequency won't overflow the DMA blocks
+  double tCycle_s = 1 / frequency_Hz;
+  uint32_t steps = round(tCycle_s / tStep_s);
+  if (steps >= UINT16_MAX)
+  {
+    LOGE(TAG, "Requested PWM frequency out of range. Requires %d steps of maximum %d. Increase minimum pulse width.", steps, UINT16_MAX);
+    return NULL;
+  }
+
   // Allocate physical memory to contain the control data
   memory_physical_t memory = memoryAllocatePhysical(sizeof(pipwm_control_t));
   if (memory.address == NULL)
@@ -218,15 +227,10 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
   if (virtualBase == NULL)
   {
     LOGE(TAG, "Failed to map physical memory for PiPWM channel.");
-    return NULL;
-  }
-
-  // Validate that desired frequency won't overflow the DMA blocks
-  double tCycle_s = 1 / frequency_Hz;
-  uint32_t steps = round(tCycle_s / tStep_s);
-  if (steps >= UINT16_MAX)
-  {
-    LOGE(TAG, "Requested PWM frequency out of range. Requires %d steps of maximum %d. Increase minimum pulse width.", steps, UINT16_MAX);
+    
+    // Free physical memory
+    memoryReleasePhysical(&channel->memory);
+    
     return NULL;
   }
 
@@ -247,6 +251,10 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
   if (channel == NULL)
   {
     LOGE(TAG, "Failed to allocate channel buffer.");
+    
+    // Free physical memory
+    memoryReleasePhysical(&channel->memory);
+    
     return NULL;
   }
 
