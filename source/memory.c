@@ -38,7 +38,7 @@ void* memoryMapPhysical(off_t offset, size_t length)
   if (result == -1)
     LOGE(TAG, "Failed to close /dev/mem. Error: %s", strerror(errno));
 
-  LOGI(TAG, "Mapped physical address 0x%X to virtual address 0x%X", offset, virtual);
+  LOGD(TAG, "Mapped physical address 0x%X to virtual address 0x%X", offset, virtual);
 
   return virtual;
 }
@@ -59,7 +59,7 @@ void* memoryAllocateVirtual(size_t length)
     return NULL;
   }
 
-  LOGI(TAG, "Allocated virtual memory at 0x%X of length %d.", virtual, length);
+  LOGD(TAG, "Allocated virtual memory at 0x%X of length %d.", virtual, length);
   
   return virtual;
 }
@@ -85,7 +85,7 @@ void* memoryVirtualToPhysical(void* virtual)
   // Calculate offset into file for the target address
   off_t offset = ((off_t)virtual / pageSize) * sizeof(pagemap_entry_t);
 
-  LOGI(TAG, "Reading pagemap at offset 0x%X.", offset);
+  LOGD(TAG, "Reading pagemap at offset 0x%X.", offset);
 
   pagemap_entry_t entry = (pagemap_entry_t) {0};
   ssize_t read = pread(file, &entry, sizeof(pagemap_entry_t), offset);
@@ -133,7 +133,7 @@ memory_physical_t memoryAllocatePhysical(size_t length)
     return memory;
   }
 
-  LOGI(TAG, "Allocated memory at 0x%X of length %d.", memory.address, length);
+  LOGD(TAG, "Allocated memory at 0x%X of length %d.", memory.address, length);
   
   return memory;
 }

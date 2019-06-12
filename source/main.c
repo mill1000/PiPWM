@@ -9,6 +9,8 @@
 
 int main()
 {
+  logSetLevel(LOG_LEVEL_DEBUG);
+  
   double frequency_Hz = 100;
   double tCycle_s = 1 / frequency_Hz;
   double tStep_s = 10e-6;
