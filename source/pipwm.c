@@ -107,9 +107,9 @@ void piPwm_shutdown()
 
   @param  channel PiPWM channel structure to generate for
   @param  busAddress Bus address of allocated memory
-  @retval none
+  @retval void* - Bus address of generated control blocks
 */
-static void piPwm_generateControlBlocks(const pipwm_channel_t* channel, void* busAddress)
+static void* piPwm_generateControlBlocks(const pipwm_channel_t* channel, void* busAddress)
 {
   // Construct references to GPIO and PWM peripherals at their bus addresses
   bcm2837_pwm_t* bPwm = (bcm2837_pwm_t*) (BCM2837_BUS_PERIPHERAL_BASE + PWM_BASE_OFFSET);
@@ -185,6 +185,8 @@ static void piPwm_generateControlBlocks(const pipwm_channel_t* channel, void* bu
 
   // Loop block back to start
   control->nextControlBlock = &bControl->controlBlocks[0];
+
+  return bControl->controlBlocks;
 }
 
 /**
@@ -229,7 +231,7 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
     LOGE(TAG, "Failed to map physical memory for PiPWM channel.");
     
     // Free physical memory
-    memoryReleasePhysical(&channel->memory);
+    memoryReleasePhysical(&memory);
     
     return NULL;
   }
@@ -253,7 +255,7 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
     LOGE(TAG, "Failed to allocate channel buffer.");
     
     // Free physical memory
-    memoryReleasePhysical(&channel->memory);
+    memoryReleasePhysical(&memory);
     
     return NULL;
   }
@@ -266,13 +268,13 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
   channel->steps = steps;
 
   // Generate the DMA control blocks for PWM output
-  piPwm_generateControlBlocks(channel, busBase);
+  void* controlBlocks = piPwm_generateControlBlocks(channel, busBase);
 
   // Reset target DMA channel
   dmaReset(dmaChannel);
 
   // Set control block on target DMA channel
-  dmaSetControlBlock(dmaChannel, busBase);
+  dmaSetControlBlock(dmaChannel, controlBlocks);
 
   // Save reference to channel
   activeChannels[dmaChannel] = channel;
