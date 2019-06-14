@@ -10,15 +10,30 @@
 
 #define TAG "MAIN"
 
-void signalHandler(int signal)
+/**
+  @brief  Callback function for POSIX signals
+
+  @param  signal Received POSIX signal
+  @retval none
+*/
+static void signalHandler(int32_t signal)
 {
   LOGW(TAG, "Received signal %s (%d).", sys_siglist[signal], signal);
 
+  // Safetly shutdown the PWM system
   piPwm_shutdown();
 
+  // Termiante
   exit(EXIT_SUCCESS);
 }
 
+/**
+  @brief  Reigster a handler for all POSIX signals 
+          that would cause termination
+
+  @param  none
+  @retval none
+*/
 void registerSignalHandler()
 {
   struct sigaction sa;
@@ -40,25 +55,35 @@ void registerSignalHandler()
   sigaction(SIGBUS, &sa, NULL);
 }
 
-int main()
+/**
+  @brief  Main entry point
+
+  @param  argc
+  @param  argv
+  @retval none
+*/
+int main (int argc, char* argv[])
 {
+  // Register signal handlers
   registerSignalHandler();
 
+  // Increase logging level to debug
   logSetLevel(LOG_LEVEL_DEBUG);
     
-  double tStep_s = 33e-6;
+  // Initalize PWM system with requested resolution fo 10 us
+  double tStep_s = piPwm_initialize(dma_channel_13, 10e-6);
 
-  tStep_s = piPwm_initialize(dma_channel_13, tStep_s);
- 
-  gpio_pin_mask_t mask = 1 << 12 | 1 << 16;
+  gpio_pin_mask_t pins = 1 << 12 | 1 << 16;
 
-  pipwm_channel_t* channel = piPwm_initalizeChannel(dma_channel_14, mask, 100);
+  // Initalize PWM channel at 100 Hz on pins 12 & 16
+  pipwm_channel_t* channel = piPwm_initalizeChannel(dma_channel_14, pins, 100);
   if (channel == NULL)
     LOGF(TAG, "Failed to initalize PiPWM channel");
 
+  // Enable the channel
   piPwm_enableChannel(channel, true);
-
-  piPwm_setDutyCycle(channel, mask, .25);
+  
+  piPwm_setDutyCycle(channel, pins, .25);
   sleep(2);
 
   piPwm_setPulseWidth(channel, 1 << 12, 1.52e-3);
