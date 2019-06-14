@@ -33,9 +33,9 @@ struct
   @param  divi Clock source integer divisor
   @param  divf Clock source fractional divisor
   @param  range Range of PWM peripheral
-  @retval none
+  @retval double - Actual time resolution in seconds
 */
-static void piPwm_initializeTimebase(dma_channel_t dmaChannel, uint16_t divi, uint16_t divf, uint16_t range)
+static double piPwm_initializeTimebase(dma_channel_t dmaChannel, uint16_t divi, uint16_t divf, uint16_t range)
 {
   clock_configuration_t clockConfig;
   clockConfig.source = CLOCK_SOURCE_OSCILLATOR;
@@ -123,6 +123,8 @@ static void piPwm_initializeTimebase(dma_channel_t dmaChannel, uint16_t divi, ui
   timebase.tStep_s = tStep_s;
 
   LOGI(TAG, "Timebase configured on DMA channel %d with actual resolution of %g us.", timebase.dmaChannel, timebase.tStep_s * 1e6);
+
+  return timebase.tStep_s;
 }
 
 /**
@@ -130,9 +132,9 @@ static void piPwm_initializeTimebase(dma_channel_t dmaChannel, uint16_t divi, ui
 
   @param  dmaChannel DMA channel to run timebase on
   @param  resolution_s Minimum time resolution in seconds
-  @retval none
+  @retval double - Actual time resolution in seconds
 */
-void piPwm_initialize(dma_channel_t dmaChannel, double resolution_s)
+double piPwm_initialize(dma_channel_t dmaChannel, double resolution_s)
 {
   // Initialize BCM peripheral drivers
   bcm2837_init();
@@ -155,7 +157,7 @@ void piPwm_initialize(dma_channel_t dmaChannel, double resolution_s)
   LOGD(TAG, "Calculated DIVI: %d, DIVF: %d, PWM Range: %d.", (uint16_t) divi, (uint16_t)divf, range);
 
   // Initialize the timebase with the calculated divisor and range
-  piPwm_initializeTimebase(dmaChannel, divi, divf, range);
+  return piPwm_initializeTimebase(dmaChannel, divi, divf, range);
 }
 
 /**

@@ -48,7 +48,7 @@ int main()
     
   double tStep_s = 33e-6;
 
-  piPwm_initialize(dma_channel_13, tStep_s);
+  tStep_s = piPwm_initialize(dma_channel_13, tStep_s);
  
   gpio_pin_mask_t mask = 1 << 12 | 1 << 16;
 
