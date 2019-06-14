@@ -38,15 +38,7 @@ void piPwm_initialize(dma_channel_t dmaChannel, uint16_t divi, uint16_t divf, ui
   // Initialize BCM peripheral drivers
   bcm2837_init();
 
-  uint32_t dmaMask = mailboxGetDmaChannelMask();
-
   LOGI(TAG, "Initializing PiPWM.");
-  LOGI(TAG, "Available DMA Channels:");
-  for (uint32_t i = 0; i < 32; i++)
-  {
-    if (dmaMask & (1 << i))
-      LOGI(TAG, "Channel %d", i);
-  }
 
   clock_configuration_t clockConfig;
   clockConfig.source = CLOCK_SOURCE_OSCILLATOR;
@@ -55,7 +47,7 @@ void piPwm_initialize(dma_channel_t dmaChannel, uint16_t divi, uint16_t divf, ui
   clockConfig.divi = divi;
   clockConfig.divf = divf;
 
-  LOGI(TAG, "Configuring PWM clock with DIVI: %d, DIVF: %d.", clockConfig.divi, clockConfig.divf);
+  LOGD(TAG, "Configuring PWM clock with DIVI: %d, DIVF: %d.", clockConfig.divi, clockConfig.divf);
   clockConfigure(clock_peripheral_pwm, &clockConfig);
   
   clockEnable(clock_peripheral_pwm, true);
@@ -67,7 +59,7 @@ void piPwm_initialize(dma_channel_t dmaChannel, uint16_t divi, uint16_t divf, ui
   pwmConfig.invert = false;
   pwmConfig.silenceBit = 0;
 
-  LOGI(TAG, "Configuring PWM channel with range: %d.", range);
+  LOGD(TAG, "Configuring PWM channel with range: %d.", range);
   pwmReset();
   pwmConfigure(pwm_channel_1, &pwmConfig);
   
