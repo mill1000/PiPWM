@@ -11,6 +11,7 @@
 #define PIPWM_SOURCE_CLOCK_HZ (19.2e6)
 #define PIPWM_MAX_STEP_COUNT  (UINT16_MAX / sizeof(uint32_t))
 #define PIPWM_MIN_STEP_COUNT  (2)
+#define PIPWM_MIN_TIME_RESOLUTION (5e-6)
 
 typedef struct pipwm_control_t
 {
