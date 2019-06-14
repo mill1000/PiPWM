@@ -18,16 +18,19 @@
 
 static pipwm_channel_t* activeChannels[dma_channel_max];
 static double tStep_s = 0;
+static memory_physical_t memory;
+static dma_channel_t timebaseChannel;
 
 /**
   @brief  Initialize the PiPWM system, include peripheral drivers and timebase
 
+  @param  dmaChannel DMA channel to run timebase on
   @param  divi Clock source integer divisor
   @param  divf Clock source fractional divisor
   @param  range Range of PWM peripheral
   @retval none
 */
-void piPwm_initialize(uint16_t divi, uint16_t divf, uint16_t range)
+void piPwm_initialize(dma_channel_t dmaChannel, uint16_t divi, uint16_t divf, uint16_t range)
 {
   // Initialize BCM peripheral drivers
   bcm2837_init();
@@ -72,9 +75,59 @@ void piPwm_initialize(uint16_t divi, uint16_t divf, uint16_t range)
   pwmSetRange(pwm_channel_1, range);
   pwmEnable(pwm_channel_1, true);
 
+  // Allocate memory to contain timing control block
+  memory = memoryAllocatePhysical(sizeof(dma_control_block_t));
+  if (memory.address == NULL)
+    LOGF(TAG, "Failed to allocate physical memory for PiPWM timebase.");
+
+  // Map the physical memory into our address space
+  void* busBase = memory.address;
+  void* physicalBase = busBase - bcm_host_get_sdram_address();
+  void* virtualBase = memoryMapPhysical((off_t)physicalBase, sizeof(pipwm_control_t));
+  if (virtualBase == NULL)
+  {
+    // Free physical memory
+    memoryReleasePhysical(&memory);
+
+    LOGF(TAG, "Failed to map physical memory for PiPWM timebase.");
+  }
+
+  // Construct references to PWM peripherals at their bus addresses
+  bcm2837_pwm_t* bPwm = (bcm2837_pwm_t*) (BCM2837_BUS_PERIPHERAL_BASE + PWM_BASE_OFFSET);
+
+  // Control blocks reference GPIO, PWM and eachother via bus addresses
+  // Application accesses blocks via virtual addresses.
+  // Shortcuts to channel data structures in virtual and bus addresses
+  dma_control_block_t* bControl = (dma_control_block_t*) busBase;
+  dma_control_block_t* vControl = (dma_control_block_t*) virtualBase;
+
+  // Zero-init control block
+  memset(vControl, 0, sizeof(dma_control_block_t));
+
+  // Construct control block to repeatedly transfer data to PWM FIFO
+  vControl->transferInformation.NO_WIDE_BURSTS = 1;
+  vControl->transferInformation.PERMAP = DMA_DREQ_PWM;
+  vControl->transferInformation.DEST_DREQ = 1;
+  vControl->transferInformation.WAIT_RESP = 1;
+
+  vControl->sourceAddress = bControl; // Don't care
+  vControl->destinationAddress = (void*) &bPwm->FIF1;
+  vControl->transferLength.XLENGTH = sizeof(uint32_t); // Don't care
+  
+  vControl->nextControlBlock = bControl;
+
+  // Reset target DMA channel
+  dmaReset(dmaChannel);
+
+  // Set control block on target DMA channel and enable
+  dmaSetControlBlock(dmaChannel, bControl);
+  dmaEnable(dmaChannel, true);
+
   double divisor = divi + (divf / 4096);
   tStep_s = (divisor * range) / 19.2e6;
-  LOGI(TAG, "Timebase configured for a delta T of %g us.", tStep_s * 1e6);
+  timebaseChannel = dmaChannel;
+
+  LOGI(TAG, "Timebase configured on DMA channel %d with delta T of %g us.", dmaChannel, tStep_s * 1e6);
 }
 
 /**
@@ -97,6 +150,10 @@ void piPwm_shutdown()
     }
   }
 
+  // Shutdown timebase
+  dmaEnable(timebaseChannel, false);
+  memoryReleasePhysical(&memory);
+
   // Disable the PWM timebase
   pwmReset();
   clockEnable(clock_peripheral_pwm, false);
@@ -111,28 +168,29 @@ void piPwm_shutdown()
 */
 static void* piPwm_generateControlBlocks(const pipwm_channel_t* channel, void* busAddress)
 {
-  // Construct references to GPIO and PWM peripherals at their bus addresses
-  bcm2837_pwm_t* bPwm = (bcm2837_pwm_t*) (BCM2837_BUS_PERIPHERAL_BASE + PWM_BASE_OFFSET);
+  // Construct references to GPIO peripheral at its bus addresses
   bcm2837_gpio_t* bGpio = (bcm2837_gpio_t*) (BCM2837_BUS_PERIPHERAL_BASE + GPIO_BASE_OFFSET);
 
+  // Control blocks reference GPIO, PWM and eachother via bus addresses
+  // Application accesses blocks via virtual addresses.
   // Shortcuts to channel data structures in virtual and bus addresses
   pipwm_control_t* bControl = (pipwm_control_t*) busAddress;
   pipwm_control_t* vControl = channel->vControl;
 
   // Set data masks
   vControl->setMask = 0; // Starting with no output
-  vControl->clearMask = channel->pinMask;
+  for (uint16_t i = 0; i < channel->steps - 1; i++)
+    vControl->clearMask[i] = channel->pinMask;
 
   // Zero-init all control blocks  
-  memset((void*)vControl->controlBlocks, 0, 4 * sizeof(dma_control_block_t));
-
-  // Control blocks reference GPIO, PWM and eachother via bus addresses
-  // Application accesses blocks via virtual addresses.
+  memset((void*)vControl->controlBlocks, 0, 2 * sizeof(dma_control_block_t));
 
   // Configure block #1, GPIO set block
   dma_control_block_t* control = &vControl->controlBlocks[0];
 
   control->transferInformation.NO_WIDE_BURSTS = 1;
+  control->transferInformation.PERMAP = DMA_DREQ_PWM;
+  control->transferInformation.DEST_DREQ = 1;
   control->transferInformation.WAIT_RESP = 1;
   control->transferInformation.SRC_INC = 1;
 
@@ -142,46 +200,18 @@ static void* piPwm_generateControlBlocks(const pipwm_channel_t* channel, void* b
 
   control->nextControlBlock = &bControl->controlBlocks[1];
 
-  // Configure block #2, positive pulse width delay
+  // Configure block #2, GPIO clear block
   control = &vControl->controlBlocks[1];
 
   control->transferInformation.NO_WIDE_BURSTS = 1;
   control->transferInformation.PERMAP = DMA_DREQ_PWM;
-  control->transferInformation.SRC_DREQ = 1;
   control->transferInformation.DEST_DREQ = 1;
-  control->transferInformation.WAIT_RESP = 1;
-
-  control->sourceAddress = &bControl->setMask;
-  control->destinationAddress = (void*) &bPwm->FIF1;
-  control->transferLength.XLENGTH = 0;
-
-  control->nextControlBlock = &bControl->controlBlocks[2];
-
-  // Configure block #3, GPIO clear block
-  control = &vControl->controlBlocks[2];
-
-  control->transferInformation.NO_WIDE_BURSTS = 1;
   control->transferInformation.WAIT_RESP = 1;
   control->transferInformation.SRC_INC = 1;
 
-  control->sourceAddress = &bControl->clearMask;
+  control->sourceAddress = &bControl->clearMask[0];
   control->destinationAddress = (void*) &bGpio->GPCLRx[0].CLR;
-  control->transferLength.XLENGTH = sizeof(uint32_t);
-
-  control->nextControlBlock = &bControl->controlBlocks[3];
-
-  // Configure block #4, negative pulse width delay
-  control = &vControl->controlBlocks[3];
-
-  control->transferInformation.NO_WIDE_BURSTS = 1;
-  control->transferInformation.PERMAP = DMA_DREQ_PWM;
-  control->transferInformation.SRC_DREQ = 1;
-  control->transferInformation.DEST_DREQ = 1;
-  control->transferInformation.WAIT_RESP = 1;
-
-  control->sourceAddress = &bControl->clearMask;
-  control->destinationAddress = (void*) &bPwm->FIF1;
-  control->transferLength.XLENGTH = channel->steps * sizeof(uint32_t);
+  control->transferLength.XLENGTH = (channel->steps - 1) * sizeof(uint32_t);
 
   // Loop block back to start
   control->nextControlBlock = &bControl->controlBlocks[0];
@@ -214,8 +244,11 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
     return NULL;
   }
 
+  // Determine size of control data
+  size_t length = steps * sizeof(gpio_pin_mask_t) + 2 * sizeof(dma_control_block_t);
+
   // Allocate physical memory to contain the control data
-  memory_physical_t memory = memoryAllocatePhysical(sizeof(pipwm_control_t));
+  memory_physical_t memory = memoryAllocatePhysical(length);
   if (memory.address == NULL)
   {
     LOGE(TAG, "Failed to allocate physical memory for PiPWM channel.");
@@ -225,7 +258,7 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
   // Map the physical memory into our address space
   void* busBase = memory.address;
   void* physicalBase = busBase - bcm_host_get_sdram_address();
-  void* virtualBase = memoryMapPhysical((off_t)physicalBase, sizeof(pipwm_control_t));
+  void* virtualBase = memoryMapPhysical((off_t)physicalBase, length);
   if (virtualBase == NULL)
   {
     LOGE(TAG, "Failed to map physical memory for PiPWM channel.");
@@ -329,23 +362,36 @@ void piPwm_enableChannel(const pipwm_channel_t* channel, bool enable)
   @param  dutyCycle PWM duty cycle to set
   @retval none
 */
-void piPwm_setDutyCycle(pipwm_channel_t* channel, double dutyCycle)
+void piPwm_setDutyCycle(pipwm_channel_t* channel, gpio_pin_mask_t mask, double dutyCycle)
 {
   // Force dutyCycle to 0 if desired results in no pulse
-  if (round(dutyCycle * channel->steps) < 1)
+  if (floor(dutyCycle * channel->steps) < 1)
     dutyCycle = 0;
 
   // Force dutyCycle to 1 if desired would result in always full pulse
-  if (round(dutyCycle * channel->steps) == channel->steps)
+  if (ceil(dutyCycle * channel->steps) == channel->steps)
     dutyCycle = 1;
 
-  // Adjust pinmaks as necessary to eliminate glitches
-  channel->vControl->setMask = (dutyCycle > 0) ? channel->pinMask : 0;
-  channel->vControl->clearMask = (dutyCycle < 1) ? channel->pinMask : 0;
+  // Mask requested pins by configured pin maks
+  gpio_pin_mask_t channelMask = mask & channel->pinMask;
 
-  // Update delay structures for new dutyCycle
-  channel->vControl->controlBlocks[1].transferLength.XLENGTH = dutyCycle * channel->steps * sizeof(uint32_t);
-  channel->vControl->controlBlocks[3].transferLength.XLENGTH = (1 - dutyCycle) * channel->steps * sizeof(uint32_t);
+  // Add mask to setMask if pulse should be generated
+  if (dutyCycle > 0)
+    channel->vControl->setMask |= channelMask;
+  else
+    channel->vControl->setMask &= ~channelMask;
+
+  // Determine position in sequence where pin should go low
+  uint16_t step = dutyCycle * (channel->steps - 1);
+
+  // Update clearMask for desired pulse width
+  for (uint16_t i = 0; i < channel->steps; i++)
+  {
+    if (i < step)
+      channel->vControl->clearMask[i] &= ~channelMask;
+    else
+      channel->vControl->clearMask[i] |= channelMask;
+  }
 }
 
 /**
@@ -355,11 +401,11 @@ void piPwm_setDutyCycle(pipwm_channel_t* channel, double dutyCycle)
   @param  pulseWidth_s Pulse width in seconds
   @retval none
 */
-void piPwm_setPulseWidth(pipwm_channel_t* channel, double pulseWidth_s)
+void piPwm_setPulseWidth(pipwm_channel_t* channel, gpio_pin_mask_t mask, double pulseWidth_s)
 {
   // Calclate maximum pulse width possible
   double tMax_s = tStep_s * channel->steps;
 
   // Calculate duty cycle and pass
-  piPwm_setDutyCycle(channel, pulseWidth_s / tMax_s);
+  piPwm_setDutyCycle(channel, mask, pulseWidth_s / tMax_s);
 }

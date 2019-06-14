@@ -93,20 +93,24 @@ int main()
   double integral = 0;
   double frac = modf(divider / 2, &integral);
   
-  piPwm_initialize(integral, frac * 4096, 2);
+  piPwm_initialize(dma_channel_13, integral, frac * 4096, 2);
  
-  gpio_pin_mask_t mask = 1 << 12;
+  gpio_pin_mask_t mask = 1 << 12 | 1 << 16;
 
-  pipwm_channel_t* channel = piPwm_initalizeChannel(dma_channel_13, mask, 100);
+  pipwm_channel_t* channel = piPwm_initalizeChannel(dma_channel_14, mask, 100);
   if (channel == NULL)
     LOGF(TAG, "Failed to initalize PiPWM channel");
 
   piPwm_enableChannel(channel, true);
 
-  piPwm_setDutyCycle(channel, .25);
+  piPwm_setDutyCycle(channel, mask, .25);
   sleep(2);
 
-  piPwm_setPulseWidth(channel, 1.52e-3);
+  piPwm_setPulseWidth(channel, 1 << 12, 1.52e-3);
+  sleep(2);
+
+  piPwm_setDutyCycle(channel, 1 << 16, .5);
+  sleep(2);
 
   while(1)
     sleep(1);
