@@ -261,12 +261,22 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
     return NULL;
   }
 
-  // Validate that desired frequency won't overflow the DMA blocks
   double tCycle_s = 1 / frequency_Hz;
   uint32_t steps = round(tCycle_s / timebase.tStep_s);
-  if (steps >= UINT16_MAX)
+
+  // Check that required steps won't overflow the DMA blocks
+  if (steps > PIPWM_MAX_STEP_COUNT)
   {
-    LOGE(TAG, "Requested PWM frequency out of range. Requires %d steps of maximum %d. Increase minimum pulse width.", steps, UINT16_MAX);
+    double minFrequency_Hz = 1 / (PIPWM_MAX_STEP_COUNT * timebase.tStep_s);
+    LOGE(TAG, "Requested PWM frequency out of range. Minimum frequency of %g Hz. Increase PWM frequncy or decrease timebase resolution.", minFrequency_Hz);
+    return NULL;
+  }
+
+  // Check that required steps is enough for a single transision
+  if (steps < PIPWM_MIN_STEP_COUNT)
+  {
+    double maxFrequency_Hz = 1 / (PIPWM_MIN_STEP_COUNT * timebase.tStep_s);
+    LOGE(TAG, "Requested PWM frequency out of range. Maximum frequncy of %g Hz. Decrease PWM frequency or increase timebase resolution.", maxFrequency_Hz);
     return NULL;
   }
 
@@ -295,7 +305,8 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
     return NULL;
   }
 
-  LOGI(TAG, "Configuring DMA channel %d for %g Hz with %d steps.", dmaChannel, frequency_Hz, steps);
+  LOGI(TAG, "Configuring DMA channel %d with target frequency of %g Hz.", dmaChannel, frequency_Hz);
+  LOGI(TAG, "Achieved PWM frequency of %g Hz with %d steps.", 1 / (steps * timebase.tStep_s), steps);
 
   // Configure selected pins as outputs
   gpio_configuration_t gpioConfig;

@@ -9,6 +9,8 @@
 #include "memory.h"
 
 #define PIPWM_SOURCE_CLOCK_HZ (19.2e6)
+#define PIPWM_MAX_STEP_COUNT  (UINT16_MAX / sizeof(uint32_t))
+#define PIPWM_MIN_STEP_COUNT  (2)
 
 typedef struct pipwm_control_t
 {
