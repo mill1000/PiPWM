@@ -1,6 +1,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <float.h>
+#include <math.h>
 #include <bcm_host.h>
 
 #include "bcm2837_pwm.h"
@@ -25,7 +27,7 @@ struct
 } timebase;
 
 /**
-  @brief  Initialize the PiPWM system, include peripheral drivers and timebase
+  @brief  Initialize the PiPWM timebase
 
   @param  dmaChannel DMA channel to run timebase on
   @param  divi Clock source integer divisor
@@ -33,13 +35,8 @@ struct
   @param  range Range of PWM peripheral
   @retval none
 */
-void piPwm_initialize(dma_channel_t dmaChannel, uint16_t divi, uint16_t divf, uint16_t range)
+static void piPwm_initializeTimebase(dma_channel_t dmaChannel, uint16_t divi, uint16_t divf, uint16_t range)
 {
-  // Initialize BCM peripheral drivers
-  bcm2837_init();
-
-  LOGI(TAG, "Initializing PiPWM.");
-
   clock_configuration_t clockConfig;
   clockConfig.source = CLOCK_SOURCE_OSCILLATOR;
   clockConfig.mash = CLOCK_MASH_NONE;
@@ -119,13 +116,43 @@ void piPwm_initialize(dma_channel_t dmaChannel, uint16_t divi, uint16_t divf, ui
   dmaEnable(dmaChannel, true);
 
   double divisor = divi + (divf / 4096);
-  double tStep_s = (divisor * range) / 19.2e6;
+  double tStep_s = (divisor * range) / PIPWM_SOURCE_CLOCK_HZ;
 
   timebase.dmaChannel = dmaChannel;
   timebase.memory = memory;
   timebase.tStep_s = tStep_s;
 
-  LOGI(TAG, "Timebase configured on DMA channel %d with resolution of %g us.", timebase.dmaChannel, timebase.tStep_s * 1e6);
+  LOGI(TAG, "Timebase configured on DMA channel %d with actual resolution of %g us.", timebase.dmaChannel, timebase.tStep_s * 1e6);
+}
+
+/**
+  @brief  Initialize the PiPWM system at the target time resolution
+
+  @param  dmaChannel DMA channel to run timebase on
+  @param  resolution_s Minimum time resolution in seconds
+  @retval none
+*/
+void piPwm_initialize(dma_channel_t dmaChannel, double resolution_s)
+{
+  // Initialize BCM peripheral drivers
+  bcm2837_init();
+
+  LOGI(TAG, "Initializing PiPWM with target resolution of %g us.", resolution_s * 1e6);
+
+  double divisor = resolution_s * PIPWM_SOURCE_CLOCK_HZ;
+  LOGD(TAG, "Clock divisor of %g required for resolution of %g us.", divisor, resolution_s * 1e6);
+
+  uint16_t range = 2;
+  while ((divisor / range) > 4096)
+    range *= 2;
+ 
+  double divi = 0;
+  double divf = 4096 * modf(divisor / range, &divi);
+
+  LOGD(TAG, "Calculated DIVI: %d, DIVF: %d, PWM Range: %d.", (uint16_t) divi, (uint16_t)divf, range);
+
+  // Initialize the timebase with the calculated divisor and range
+  piPwm_initializeTimebase(dmaChannel, divi, divf, range);
 }
 
 /**

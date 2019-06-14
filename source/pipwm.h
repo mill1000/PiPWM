@@ -8,6 +8,8 @@
 #include "bcm2837.h"
 #include "memory.h"
 
+#define PIPWM_SOURCE_CLOCK_HZ (19.2e6)
+
 typedef struct pipwm_control_t
 {
   dma_control_block_t controlBlocks[2];
@@ -24,7 +26,7 @@ typedef struct pipwm_channel_t
   uint32_t          steps;
 } pipwm_channel_t;
 
-void piPwm_initialize(dma_channel_t dmaChannel, uint16_t divi, uint16_t divf, uint16_t range);
+void piPwm_initialize(dma_channel_t dmaChannel, double resolution_s);
 void piPwm_shutdown(void);
 pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_t pinMask, double frequency_Hz);
 void piPwm_releaseChannel(pipwm_channel_t* channel);
