@@ -1,9 +1,9 @@
 #include <stddef.h>
 #include <assert.h>
 
-#include <bcm2837_pwm.h>
+#include <bcm283x_pwm.h>
 
-static bcm2837_pwm_t* pwm = NULL;
+static bcm283x_pwm_t* pwm = NULL;
 
 /**
   @brief  Initalize the PWM object at the given base address
@@ -161,7 +161,7 @@ void pwmConfigure(pwm_channel_t channel, const pwm_configuration_t* config)
     // Disable channel before update
     pwm->CTL.PWEN1 = 0;
 
-    bcm2837_delay_microseconds(10);
+    bcm283x_delay_microseconds(10);
 
     // Create a copy of the control register to modify
     pwm_control_t control = pwm->CTL;
@@ -196,7 +196,7 @@ void pwmConfigure(pwm_channel_t channel, const pwm_configuration_t* config)
     // Disable channel before update
     pwm->CTL.PWEN2 = 0;
 
-    bcm2837_delay_microseconds(10);
+    bcm283x_delay_microseconds(10);
 
     // Create a copy of the control register to modify
     pwm_control_t control = pwm->CTL;
@@ -229,7 +229,7 @@ void pwmConfigure(pwm_channel_t channel, const pwm_configuration_t* config)
 
   RMB();
 
-  bcm2837_delay_microseconds(10);
+  bcm283x_delay_microseconds(10);
 }
 
 /**

@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <assert.h>
 
-#include <bcm2837_clock.h>
+#include <bcm283x_clock.h>
 
 static void* clock = NULL;
 
@@ -23,9 +23,9 @@ void clockInit(void* base)
   @brief  Fetch the clock configuration structure for the given peripheral
 
   @param  peripheral Target peripheral to fetch clock config for
-  @retval bcm2837_clock_t*
+  @retval bcm283x_clock_t*
 */
-static bcm2837_clock_t* clockGetPeripheralClock(clock_peripheral_t peripheral)
+static bcm283x_clock_t* clockGetPeripheralClock(clock_peripheral_t peripheral)
 {
   assert(clock != NULL);
   assert(peripheral < clock_peripheral_max);
@@ -57,7 +57,7 @@ static bcm2837_clock_t* clockGetPeripheralClock(clock_peripheral_t peripheral)
       return NULL;
   }
 
-  return (bcm2837_clock_t*) (clock + offset);
+  return (bcm283x_clock_t*) (clock + offset);
 }
 
 /**
@@ -69,7 +69,7 @@ static bcm2837_clock_t* clockGetPeripheralClock(clock_peripheral_t peripheral)
 */
 void clockEnable(clock_peripheral_t peripheral, bool enable)
 {
-  bcm2837_clock_t* clock = clockGetPeripheralClock(peripheral);
+  bcm283x_clock_t* clock = clockGetPeripheralClock(peripheral);
 
   assert(clock != NULL);
 
@@ -94,7 +94,7 @@ void clockEnable(clock_peripheral_t peripheral, bool enable)
 */
 void clockWaitBusy(clock_peripheral_t peripheral)
 {
-  bcm2837_clock_t* clock = clockGetPeripheralClock(peripheral);
+  bcm283x_clock_t* clock = clockGetPeripheralClock(peripheral);
 
   assert(clock != NULL);
 
@@ -117,7 +117,7 @@ void clockConfigure(clock_peripheral_t peripheral, const clock_configuration_t* 
   assert(config->divi > 0 && config->divi < 4096);
   assert(config->divf >= 0 && config->divf < 4096);
 
-  bcm2837_clock_t* clock = clockGetPeripheralClock(peripheral);
+  bcm283x_clock_t* clock = clockGetPeripheralClock(peripheral);
 
   assert(clock != NULL);
 

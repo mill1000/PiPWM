@@ -5,11 +5,12 @@
 #include <math.h>
 #include <bcm_host.h>
 
-#include "bcm2837_pwm.h"
-#include "bcm2837_dma.h"
-#include "bcm2837_clock.h"
-#include "bcm2837_gpio.h"
-#include "bcm2837.h"
+#include "bcm283x.h"
+#include "bcm283x_pwm.h"
+#include "bcm283x_dma.h"
+#include "bcm283x_clock.h"
+#include "bcm283x_gpio.h"
+
 #include "log.h"
 #include "memory.h"
 #include "utils.h"
@@ -19,7 +20,7 @@
 #define TAG "PiPWM"
 
 pipwm_channel_t* activeChannels[dma_channel_max];
-struct
+static struct
 {
   dma_channel_t dmaChannel;
   memory_physical_t memory;
@@ -85,7 +86,7 @@ static double piPwm_initializeTimebase(dma_channel_t dmaChannel, uint16_t divi, 
   }
 
   // Construct references to PWM peripherals at their bus addresses
-  bcm2837_pwm_t* bPwm = (bcm2837_pwm_t*) (BCM2837_BUS_PERIPHERAL_BASE + PWM_BASE_OFFSET);
+  bcm283x_pwm_t* bPwm = (bcm283x_pwm_t*) (BCM283X_BUS_PERIPHERAL_BASE + PWM_BASE_OFFSET);
 
   // Control blocks reference GPIO, PWM and eachother via bus addresses
   // Application accesses blocks via virtual addresses.
@@ -137,7 +138,7 @@ static double piPwm_initializeTimebase(dma_channel_t dmaChannel, uint16_t divi, 
 double piPwm_initialize(dma_channel_t dmaChannel, double resolution_s)
 {
   // Initialize BCM peripheral drivers
-  bcm2837_init();
+  bcm283x_init();
 
   LOGI(TAG, "Initializing PiPWM with target resolution of %g us.", resolution_s * 1e6);
 
@@ -200,7 +201,7 @@ void piPwm_shutdown()
 static void* piPwm_generateControlBlocks(const pipwm_channel_t* channel, void* busAddress)
 {
   // Construct references to GPIO peripheral at its bus addresses
-  bcm2837_gpio_t* bGpio = (bcm2837_gpio_t*) (BCM2837_BUS_PERIPHERAL_BASE + GPIO_BASE_OFFSET);
+  bcm283x_gpio_t* bGpio = (bcm283x_gpio_t*) (BCM283X_BUS_PERIPHERAL_BASE + GPIO_BASE_OFFSET);
 
   // Control blocks reference GPIO, PWM and eachother via bus addresses
   // Application accesses blocks via virtual addresses.

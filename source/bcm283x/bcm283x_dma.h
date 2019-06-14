@@ -1,7 +1,7 @@
-#ifndef __BCM2837_DMA__
-#define __BCM2837_DMA__
+#ifndef __BCM283X_DMA__
+#define __BCM283X_DMA__
 
-#include "bcm2837.h"
+#include "bcm283x.h"
 
 /**
   @brief  Internal structures, types and constants
@@ -195,7 +195,7 @@ struct dma_control_block_t
   uint32_t                    _reserved[2];
 };
 
-typedef struct bcm2837_dma_channel_t
+typedef struct bcm283x_dma_channel_t
 {
   volatile dma_control_status_t         CS;
   volatile dma_control_block_t*         CONBLK_AD;
@@ -206,7 +206,7 @@ typedef struct bcm2837_dma_channel_t
   volatile dma_stride_t                 STRIDE;
   volatile dma_control_block_t*         NEXTCONBK;
   volatile dma_debug_t                  DEBUG;
-} bcm2837_dma_channel_t;
+} bcm283x_dma_channel_t;
 
 static_assert(sizeof(dma_control_status_t) == sizeof(uint32_t), "dma_control_status_t must be 4 bytes.");
 static_assert(sizeof(dma_transfer_information_t) == sizeof(uint32_t), "dma_transfer_information_t must be 4 bytes.");
@@ -218,7 +218,7 @@ static_assert(sizeof(dma_enable_t) == sizeof(uint32_t), "dma_enable_t must be 4 
 
 static_assert(sizeof(dma_control_block_t) == 8 * sizeof(uint32_t), "dma_control_block_t must be 32 bytes.");
 
-static_assert(sizeof(bcm2837_dma_channel_t) == 9 * sizeof(uint32_t), "bcm2837_dma_channel_t must be 36 bytes.");
+static_assert(sizeof(bcm283x_dma_channel_t) == 9 * sizeof(uint32_t), "bcm283x_dma_channel_t must be 36 bytes.");
 
 /**
   @brief  External structures, types and interfaces.

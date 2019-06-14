@@ -3,24 +3,24 @@
 
 #include <bcm_host.h>
 
-#include "bcm2837.h"
-#include "bcm2837_pwm.h"
-#include "bcm2837_clock.h"
-#include "bcm2837_gpio.h"
-#include "bcm2837_dma.h"
+#include "bcm283x.h"
+#include "bcm283x_pwm.h"
+#include "bcm283x_clock.h"
+#include "bcm283x_gpio.h"
+#include "bcm283x_dma.h"
 #include "log.h"
 #include "memory.h"
 #include "utils.h"
 
-#define TAG "BCM2837"
+#define TAG "BCM283X"
 
 /**
-  @brief  Initalize BCM2837 peripheral modules
+  @brief  Initalize BCM283X peripheral modules
 
   @param  none
   @retval none
 */
-void bcm2837_init()
+void bcm283x_init()
 {
   static void* virtualBase = NULL;
 
@@ -58,7 +58,7 @@ void bcm2837_init()
   @param  microseconds Delay time in microseconds
   @retval none
 */
-void bcm2837_delay_microseconds(uint32_t microseconds)
+void bcm283x_delay_microseconds(uint32_t microseconds)
 {
   microsleep(microseconds);
 }

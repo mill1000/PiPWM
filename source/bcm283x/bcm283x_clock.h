@@ -1,7 +1,7 @@
-#ifndef __BCM2837_CLOCK__
-#define __BCM2837_CLOCK__
+#ifndef __BCM283X_CLOCK__
+#define __BCM283X_CLOCK__
 
-#include "bcm2837.h"
+#include "bcm283x.h"
 
 /**
   @brief  Internal structures, types and constants
@@ -57,15 +57,15 @@ typedef struct clock_divisor_t
   uint32_t PASSWD : 8;
 } clock_divisor_t;
 
-typedef struct bcm2837_clock_t
+typedef struct bcm283x_clock_t
 {
   volatile clock_control_t  CTL;
   volatile clock_divisor_t  DIV;
-} bcm2837_clock_t;
+} bcm283x_clock_t;
 
 static_assert(sizeof(clock_control_t) == sizeof(uint32_t), "clock_control_t must be 4 bytes.");
 static_assert(sizeof(clock_divisor_t) == sizeof(uint32_t), "clock_divisor_t must be 4 bytes.");
-static_assert(sizeof(bcm2837_clock_t) == 2 * sizeof(uint32_t), "bcm2837_clock_t must be 8 bytes.");
+static_assert(sizeof(bcm283x_clock_t) == 2 * sizeof(uint32_t), "bcm283x_clock_t must be 8 bytes.");
 
 /**
   @brief  External structures, types and interfaces.

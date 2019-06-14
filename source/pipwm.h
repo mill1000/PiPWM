@@ -1,11 +1,11 @@
 #ifndef __PIPWM__
 #define __PIPWM__
 
-#include "bcm2837_pwm.h"
-#include "bcm2837_dma.h"
-#include "bcm2837_clock.h"
-#include "bcm2837_gpio.h"
-#include "bcm2837.h"
+#include "bcm283x_pwm.h"
+#include "bcm283x_dma.h"
+#include "bcm283x_clock.h"
+#include "bcm283x_gpio.h"
+#include "bcm283x.h"
 #include "memory.h"
 
 #define PIPWM_SOURCE_CLOCK_HZ (19.2e6)

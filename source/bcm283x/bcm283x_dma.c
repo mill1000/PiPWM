@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <assert.h>
 
-#include "bcm2837_dma.h"
+#include "bcm283x_dma.h"
 
 static void* dma = NULL;
 
@@ -23,14 +23,14 @@ void dmaInit(void* base)
   @brief  Fetch the channel registers for the supplied channel index.
 
   @param  channel DMA channel number
-  @retval bcm2837_dma_channel_t*
+  @retval bcm283x_dma_channel_t*
 */
-static bcm2837_dma_channel_t* dmaGetChannel(dma_channel_t channel)
+static bcm283x_dma_channel_t* dmaGetChannel(dma_channel_t channel)
 {
   assert(dma != NULL);
   assert(channel < dma_channel_max);
 
-  return (bcm2837_dma_channel_t*) (dma + (channel * DMA_CHANNEL_OFFSET));
+  return (bcm283x_dma_channel_t*) (dma + (channel * DMA_CHANNEL_OFFSET));
 }
 
 /**
@@ -41,7 +41,7 @@ static bcm2837_dma_channel_t* dmaGetChannel(dma_channel_t channel)
 */
 void dmaReset(dma_channel_t channel)
 {
-  bcm2837_dma_channel_t* handle = dmaGetChannel(channel);
+  bcm283x_dma_channel_t* handle = dmaGetChannel(channel);
 
   WMB();
   handle->CS.RESET = 1;
@@ -68,7 +68,7 @@ void dmaSetControlBlock(dma_channel_t channel, const dma_control_block_t* contro
   // Ensure block is 256 bit aligned
   assert(((uint32_t)control & 0x1F) == 0);
 
-  bcm2837_dma_channel_t* handle = dmaGetChannel(channel);
+  bcm283x_dma_channel_t* handle = dmaGetChannel(channel);
 
   WMB();
 
@@ -84,7 +84,7 @@ void dmaSetControlBlock(dma_channel_t channel, const dma_control_block_t* contro
 */
 void dmaEnable(dma_channel_t channel, bool enable)
 {
-  bcm2837_dma_channel_t* handle = dmaGetChannel(channel);
+  bcm283x_dma_channel_t* handle = dmaGetChannel(channel);
 
   WMB();
 

@@ -1,7 +1,7 @@
-#ifndef __BCM2837_PWM__
-#define __BCM2837_PWM__
+#ifndef __BCM283X_PWM__
+#define __BCM283X_PWM__
 
-#include "bcm2837.h"
+#include "bcm283x.h"
 
 /**
   @brief  Internal structures, types and constants
@@ -56,7 +56,7 @@ typedef struct pwm_dma_config_t
   uint32_t ENAB : 1;
 } pwm_dma_config_t;
 
-typedef struct bcm2837_pwm_t
+typedef struct bcm283x_pwm_t
 {
   volatile pwm_control_t    CTL;
   volatile pwm_status_t     STA;
@@ -68,12 +68,12 @@ typedef struct bcm2837_pwm_t
   volatile uint32_t         _reserved2;
   volatile uint32_t         RNG2;
   volatile uint32_t         DAT2;
-} bcm2837_pwm_t;
+} bcm283x_pwm_t;
 
 static_assert(sizeof(pwm_control_t) == sizeof(uint32_t), "pwm_control_t must be 4 bytes.");
 static_assert(sizeof(pwm_status_t) == sizeof(uint32_t), "pwm_status_t must be 4 bytes.");
 static_assert(sizeof(pwm_dma_config_t) == sizeof(uint32_t), "pwm_dma_config_t must be 4 bytes.");
-static_assert(sizeof(bcm2837_pwm_t) == 10 * sizeof(uint32_t), "bcm2837_pwm_t must be 40 bytes.");
+static_assert(sizeof(bcm283x_pwm_t) == 10 * sizeof(uint32_t), "bcm283x_pwm_t must be 40 bytes.");
 
 /**
   @brief  External structures, types and interfaces.

@@ -1,7 +1,7 @@
-#ifndef __BCM2837_MAILBOX__
-#define __BCM2837_MAILBOX__
+#ifndef __BCM283X_MAILBOX__
+#define __BCM283X_MAILBOX__
 
-#include "bcm2837.h"
+#include "bcm283x.h"
 
 #define MAILBOX_CODE_SUCCESS  0x80000000
 

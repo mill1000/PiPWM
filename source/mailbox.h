@@ -1,7 +1,7 @@
 #ifndef __MAILBOX__
 #define __MAILBOX__
 
-#include "bcm2837_mailbox.h"
+#include "bcm283x_mailbox.h"
 
 #define VCIO_IOC_MAGIC      100
 #define IOCTL_MBOX_PROPERTY _IOWR(VCIO_IOC_MAGIC, 0, char *)

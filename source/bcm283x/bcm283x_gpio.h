@@ -1,13 +1,13 @@
-#ifndef __BCM2837_GPIO__
-#define __BCM2837_GPIO__
+#ifndef __BCM283X_GPIO__
+#define __BCM283X_GPIO__
 
-#include "bcm2837.h"
+#include "bcm283x.h"
 
 /**
   @brief  Internal structures, types and constants
 */
 
-#ifdef BCM2837_EXTENDED_GPIO
+#ifdef BCM283X_EXTENDED_GPIO
 #define GPIO_PIN_COUNT     (54)
 #else
 #define GPIO_PIN_COUNT     (32)
@@ -111,7 +111,7 @@ typedef struct gpio_pull_up_down_clock_x_t
   uint32_t PUDCLK;
 } gpio_pull_up_down_clock_x_t;
 
-typedef struct bcm2837_gpio_t
+typedef struct bcm283x_gpio_t
 {
   volatile gpio_function_select_x_t           GPFSELx[6];
   volatile uint32_t _reserved;
@@ -139,7 +139,7 @@ typedef struct bcm2837_gpio_t
   volatile gpio_pull_up_down_clock_x_t        GPPUDCLKx[2];
   volatile uint32_t _reserved12[4];
   volatile uint32_t _test;
-} bcm2837_gpio_t;
+} bcm283x_gpio_t;
 
 static_assert(sizeof(gpio_function_select_x_t) == sizeof(uint32_t), "gpio_function_select_x_t must be 4 bytes.");
 static_assert(sizeof(gpio_output_set_x_t) == sizeof(uint32_t), "gpio_output_set_x_t must be 4 bytes.");
@@ -155,14 +155,14 @@ static_assert(sizeof(gpio_async_falling_edge_enable_x_t) == sizeof(uint32_t), "g
 static_assert(sizeof(gpio_pull_up_down_t) == sizeof(uint32_t), "gpio_pull_up_down_t must be 4 bytes.");
 static_assert(sizeof(gpio_pull_up_down_clock_x_t) == sizeof(uint32_t), "gpio_pull_up_down_clock_x_t must be 4 bytes.");
 
-static_assert(sizeof(bcm2837_gpio_t) == 45 * sizeof(uint32_t), "bcm2837_gpio_t must be 180 bytes.");
+static_assert(sizeof(bcm283x_gpio_t) == 45 * sizeof(uint32_t), "bcm283x_gpio_t must be 180 bytes.");
 
 /**
   @brief  External structures, types and interfaces.
 */
 typedef uint32_t gpio_pin_t;
 
-#ifdef BCM2837_EXTENDED_GPIO
+#ifdef BCM283X_EXTENDED_GPIO
 typedef uint64_t gpio_pin_mask_t;
 #else
 typedef uint32_t gpio_pin_mask_t;

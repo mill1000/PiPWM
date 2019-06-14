@@ -2,9 +2,9 @@
 #include <assert.h>
 #include <time.h>
 
-#include <bcm2837_gpio.h>
+#include <bcm283x_gpio.h>
 
-static bcm2837_gpio_t* gpio = NULL;
+static bcm283x_gpio_t* gpio = NULL;
 
 /**
   @brief  Initalize the GPIO object at the given base address
@@ -123,13 +123,13 @@ void gpioConfigure(gpio_pin_t pin, const gpio_configuration_t* config)
     gpio->GPPUD.PUD = config->pull;
 
     // Wait at least 150 cycles. Total guess.
-    bcm2837_delay_microseconds(10);
+    bcm283x_delay_microseconds(10);
 
     // Set the clock bit for target pin
     gpio->GPPUDCLKx[bank].PUDCLK |= mask;
 
     // Wait 150 more cycles
-    bcm2837_delay_microseconds(10);
+    bcm283x_delay_microseconds(10);
 
     // Clear clock
     gpio->GPPUDCLKx[bank].PUDCLK &= ~mask;
@@ -192,7 +192,7 @@ void gpioSetMask(gpio_pin_mask_t mask)
   WMB();
   gpio->GPSETx[0].SET = mask;
 
-#ifdef BCM2837_EXTENDED_GPIO
+#ifdef BCM283X_EXTENDED_GPIO
   gpio->GPSETx[1].SET = mask >> 32;
 #endif
 }
@@ -231,7 +231,7 @@ void gpioClearMask(gpio_pin_mask_t mask)
   WMB();
   gpio->GPCLRx[0].CLR = mask;
 
-#ifdef BCM2837_EXTENDED_GPIO
+#ifdef BCM283X_EXTENDED_GPIO
   gpio->GPCLRx[1].CLR = mask >> 32;
 #endif
 }
