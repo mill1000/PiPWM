@@ -268,7 +268,7 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
     return NULL;
   }
 
-  LOGI(TAG, "Configuring DMA channel %d for %f Hz with %d steps.", dmaChannel, frequency_Hz, steps);
+  LOGI(TAG, "Configuring DMA channel %d for %g Hz with %d steps.", dmaChannel, frequency_Hz, steps);
 
   // Configure selected pins as outputs
   gpio_configuration_t gpioConfig;
