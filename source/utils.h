@@ -3,6 +3,7 @@
 
 #include <time.h>
 #include <assert.h>
+#include <stdint.h>
 
 static inline void microsleep(uint32_t microseconds)
 {
