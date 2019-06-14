@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include <bcm2837_pwm.h>
+#include <utils.h>
 
 static bcm2837_pwm_t* pwm = NULL;
 
@@ -110,6 +111,11 @@ void pwmReset()
 
   pwm->CTL = (pwm_control_t) {0};
 
+  // Clear error flags
+  pwm->STA.WERR1 = 1;
+  pwm->STA.RERR1 = 1;
+  pwm->STA.BERR = 1;
+
   pwm->DMAC.ENAB = 0;
   pwm->DMAC.PANIC = 0x7;
   pwm->DMAC.DREQ = 0x7;
@@ -150,65 +156,81 @@ void pwmConfigure(pwm_channel_t channel, const pwm_configuration_t* config)
   
   WMB();
 
-  volatile pwm_control_t* control = &pwm->CTL;
-
   // Update control register according to config
   if (channel == pwm_channel_1)
   {
     // Disable channel before update
-    control->PWEN1 = 0;
+    pwm->CTL.PWEN1 = 0;
+
+    microsleep(10);
+
+    // Create a copy of the control register to modify
+    pwm_control_t control = pwm->CTL;
 
     switch(config->mode)
     {
       case pwm_mode_serial:
-        control->MODE1 = 1;
-        control->MSEN1 = 0; // Don't care
+        control.MODE1 = 1;
+        control.MSEN1 = 0; // Don't care
       break;
 
       case pwm_mode_mark_space:
-        control->MODE1 = 0;
-        control->MSEN1 = 1;
+        control.MODE1 = 0;
+        control.MSEN1 = 1;
       break;
 
       case pwm_mode_pwm_algorithm:
-        control->MODE1 = 0;
-        control->MSEN1 = 0;
+        control.MODE1 = 0;
+        control.MSEN1 = 0;
       break;
     }
 
-    control->USEF1 = config->fifoEnable;
-    control->RPTL1 = config->repeatLast;
-    control->POLA1 = config->invert;
-    control->SBIT1 = config->silenceBit;
+    control.USEF1 = config->fifoEnable;
+    control.RPTL1 = config->repeatLast;
+    control.POLA1 = config->invert;
+    control.SBIT1 = config->silenceBit;
+
+    pwm->CTL = control;
   }
   else
   {
     // Disable channel before update
-    control->PWEN2 = 0;
+    pwm->CTL.PWEN2 = 0;
+
+    microsleep(10);
+
+    // Create a copy of the control register to modify
+    pwm_control_t control = pwm->CTL;
 
     switch(config->mode)
     {
       case pwm_mode_serial:
-        control->MODE2 = 1;
-        control->MSEN2 = 0; // Don't care
+        control.MODE2 = 1;
+        control.MSEN2 = 0; // Don't care
       break;
 
       case pwm_mode_mark_space:
-        control->MODE2 = 0;
-        control->MSEN2 = 1;
+        control.MODE2 = 0;
+        control.MSEN2 = 1;
       break;
 
       case pwm_mode_pwm_algorithm:
-        control->MODE2 = 0;
-        control->MSEN2 = 0;
+        control.MODE2 = 0;
+        control.MSEN2 = 0;
       break;
     }
 
-    control->USEF2 = config->fifoEnable;
-    control->RPTL2 = config->repeatLast;    
-    control->POLA2 = config->invert;
-    control->SBIT2 = config->silenceBit;
+    control.USEF2 = config->fifoEnable;
+    control.RPTL2 = config->repeatLast;    
+    control.POLA2 = config->invert;
+    control.SBIT2 = config->silenceBit;
+
+    pwm->CTL = control;
   }
+
+  RMB();
+
+  microsleep(10);
 }
 
 /**
