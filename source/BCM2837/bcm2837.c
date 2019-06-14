@@ -10,6 +10,7 @@
 #include "bcm2837_dma.h"
 #include "log.h"
 #include "memory.h"
+#include "utils.h"
 
 #define TAG "BCM2837"
 
@@ -47,4 +48,17 @@ void bcm2837_init()
   clockInit(virtualBase + CLOCK_BASE_OFFSET);
   gpioInit(virtualBase + GPIO_BASE_OFFSET);
   dmaInit(virtualBase + DMA_BASE_OFFSET);
+}
+
+/**
+  @brief  Delay for the target number of microseconds.
+          Primarily a helper function to prevent peripheral drivers 
+          from directly calling POSIX functions
+
+  @param  microseconds Delay time in microseconds
+  @retval none
+*/
+void bcm2837_delay_microseconds(uint32_t microseconds)
+{
+  microsleep(microseconds);
 }

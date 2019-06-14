@@ -3,7 +3,6 @@
 #include <time.h>
 
 #include <bcm2837_gpio.h>
-#include "utils.h"
 
 static bcm2837_gpio_t* gpio = NULL;
 
@@ -124,13 +123,13 @@ void gpioConfigure(gpio_pin_t pin, const gpio_configuration_t* config)
     gpio->GPPUD.PUD = config->pull;
 
     // Wait at least 150 cycles. Total guess.
-    microsleep(10);
+    bcm2837_delay_microseconds(10);
 
     // Set the clock bit for target pin
     gpio->GPPUDCLKx[bank].PUDCLK |= mask;
 
     // Wait 150 more cycles
-    microsleep(10);
+    bcm2837_delay_microseconds(10);
 
     // Clear clock
     gpio->GPPUDCLKx[bank].PUDCLK &= ~mask;

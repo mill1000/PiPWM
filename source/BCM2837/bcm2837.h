@@ -15,5 +15,6 @@
 #define RMB() WMB()
 
 void bcm2837_init(void);
+void bcm2837_delay_microseconds(uint32_t microseconds);
 
 #endif
