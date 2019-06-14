@@ -16,10 +16,13 @@
 
 #define TAG "PiPWM"
 
-static pipwm_channel_t* activeChannels[dma_channel_max];
-static double tStep_s = 0;
-static memory_physical_t memory;
-static dma_channel_t timebaseChannel;
+pipwm_channel_t* activeChannels[dma_channel_max];
+struct
+{
+  dma_channel_t dmaChannel;
+  memory_physical_t memory;
+  double tStep_s;
+} timebase;
 
 /**
   @brief  Initialize the PiPWM system, include peripheral drivers and timebase
@@ -76,7 +79,7 @@ void piPwm_initialize(dma_channel_t dmaChannel, uint16_t divi, uint16_t divf, ui
   pwmEnable(pwm_channel_1, true);
 
   // Allocate memory to contain timing control block
-  memory = memoryAllocatePhysical(sizeof(dma_control_block_t));
+  memory_physical_t memory = memoryAllocatePhysical(sizeof(dma_control_block_t));
   if (memory.address == NULL)
     LOGF(TAG, "Failed to allocate physical memory for PiPWM timebase.");
 
@@ -124,10 +127,13 @@ void piPwm_initialize(dma_channel_t dmaChannel, uint16_t divi, uint16_t divf, ui
   dmaEnable(dmaChannel, true);
 
   double divisor = divi + (divf / 4096);
-  tStep_s = (divisor * range) / 19.2e6;
-  timebaseChannel = dmaChannel;
+  double tStep_s = (divisor * range) / 19.2e6;
 
-  LOGI(TAG, "Timebase configured on DMA channel %d with delta T of %g us.", dmaChannel, tStep_s * 1e6);
+  timebase.dmaChannel = dmaChannel;
+  timebase.memory = memory;
+  timebase.tStep_s = tStep_s;
+
+  LOGI(TAG, "Timebase configured on DMA channel %d with resolution of %g us.", timebase.dmaChannel, timebase.tStep_s * 1e6);
 }
 
 /**
@@ -143,16 +149,17 @@ void piPwm_shutdown()
   // Free any initalized channels
   for (uint8_t i = 0; i < dma_channel_max; i++)
   {
-    if (activeChannels[i] != NULL)
+    pipwm_channel_t* channel = activeChannels[i];
+    if (channel != NULL)
     {
-      LOGD(TAG, "Releasing DMA channel %d.", i);
-      piPwm_releaseChannel(activeChannels[i]);
+      LOGD(TAG, "Releasing DMA channel %d.", channel->dmaChannel);
+      piPwm_releaseChannel(channel);
     }
   }
 
   // Shutdown timebase
-  dmaEnable(timebaseChannel, false);
-  memoryReleasePhysical(&memory);
+  dmaEnable(timebase.dmaChannel, false);
+  memoryReleasePhysical(&timebase.memory);
 
   // Disable the PWM timebase
   pwmReset();
@@ -237,7 +244,7 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
 
   // Validate that desired frequency won't overflow the DMA blocks
   double tCycle_s = 1 / frequency_Hz;
-  uint32_t steps = round(tCycle_s / tStep_s);
+  uint32_t steps = round(tCycle_s / timebase.tStep_s);
   if (steps >= UINT16_MAX)
   {
     LOGE(TAG, "Requested PWM frequency out of range. Requires %d steps of maximum %d. Increase minimum pulse width.", steps, UINT16_MAX);
@@ -404,7 +411,7 @@ void piPwm_setDutyCycle(pipwm_channel_t* channel, gpio_pin_mask_t mask, double d
 void piPwm_setPulseWidth(pipwm_channel_t* channel, gpio_pin_mask_t mask, double pulseWidth_s)
 {
   // Calclate maximum pulse width possible
-  double tMax_s = tStep_s * channel->steps;
+  double tMax_s = timebase.tStep_s * channel->steps;
 
   // Calculate duty cycle and pass
   piPwm_setDutyCycle(channel, mask, pulseWidth_s / tMax_s);
