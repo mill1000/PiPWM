@@ -139,6 +139,9 @@ void piPwm_initialize(dma_channel_t dmaChannel, double resolution_s)
 
   LOGI(TAG, "Initializing PiPWM with target resolution of %g us.", resolution_s * 1e6);
 
+  if (resolution_s < PIPWM_MIN_TIME_RESOLUTION)
+    LOGW(TAG, "Requested resolution is below minimum recommended of %g us.", PIPWM_MIN_TIME_RESOLUTION * 1e6);
+
   double divisor = resolution_s * PIPWM_SOURCE_CLOCK_HZ;
   LOGD(TAG, "Clock divisor of %g required for resolution of %g us.", divisor, resolution_s * 1e6);
 
