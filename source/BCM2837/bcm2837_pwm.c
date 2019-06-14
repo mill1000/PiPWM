@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include <bcm2837_pwm.h>
+#include <utils.h>
 
 static bcm2837_pwm_t* pwm = NULL;
 
@@ -161,6 +162,8 @@ void pwmConfigure(pwm_channel_t channel, const pwm_configuration_t* config)
     // Disable channel before update
     pwm->CTL.PWEN1 = 0;
 
+    microsleep(10);
+
     // Create a copy of the control register to modify
     pwm_control_t control = pwm->CTL;
 
@@ -194,6 +197,8 @@ void pwmConfigure(pwm_channel_t channel, const pwm_configuration_t* config)
     // Disable channel before update
     pwm->CTL.PWEN2 = 0;
 
+    microsleep(10);
+
     // Create a copy of the control register to modify
     pwm_control_t control = pwm->CTL;
 
@@ -224,6 +229,8 @@ void pwmConfigure(pwm_channel_t channel, const pwm_configuration_t* config)
   }
 
   RMB();
+
+  microsleep(10);
 }
 
 /**
