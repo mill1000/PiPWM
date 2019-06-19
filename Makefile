@@ -13,8 +13,8 @@ INC_DIRS := $(shell find $(SRC_DIRS) -type d) /opt/vc/include
 INC_FLAGS := $(addprefix -I ,$(INC_DIRS))
 
 LDFLAGS := -L /opt/vc/lib -lbcm_host -lm
-CPPFLAGS ?= $(INC_FLAGS) -MMD -Wall
-CFLAGS ?= $(CPPFLAGS)
+CPPFLAGS ?= $(INC_FLAGS) -MMD
+CFLAGS ?= -Wall
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CC) $(LDFLAGS) $^ -o $@ 
@@ -23,7 +23,7 @@ $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 
 $(BUILD_DIR)/%.c.o: %.c
 	@$(MKDIR_P) $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@	
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@	
 
 .PHONY: clean
 clean:
