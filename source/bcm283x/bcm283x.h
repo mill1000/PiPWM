@@ -17,4 +17,10 @@
 void bcm283x_init(void);
 void bcm283x_delay_microseconds(uint32_t microseconds);
 
+#include "bcm283x_clock.h"
+#include "bcm283x_dma.h"
+#include "bcm283x_gpio.h"
+#include "bcm283x_mailbox.h"
+#include "bcm283x_pwm.h"
+
 #endif

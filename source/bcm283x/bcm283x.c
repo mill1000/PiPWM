@@ -4,10 +4,6 @@
 #include <bcm_host.h>
 
 #include "bcm283x.h"
-#include "bcm283x_pwm.h"
-#include "bcm283x_clock.h"
-#include "bcm283x_gpio.h"
-#include "bcm283x_dma.h"
 #include "log.h"
 #include "memory.h"
 #include "utils.h"
