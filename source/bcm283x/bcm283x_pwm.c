@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <assert.h>
 
-#include <bcm283x_pwm.h>
+#include "bcm283x_pwm.h"
 
 static bcm283x_pwm_t* pwm = NULL;
 
