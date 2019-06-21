@@ -3,15 +3,16 @@ TARGET_SHARED ?= lib$(TARGET_NAME).so
 TARGET_STATIC ?= lib$(TARGET_NAME).a
 
 BUILD_DIR ?= build
-SRC_DIRS ?= source
+SRC_BASE ?= source
+INC_BASE ?= include
 
 MKDIR_P ?= mkdir -p
 
-SRCS := $(shell find $(SRC_DIRS) -name "*.cpp" -or -name "*.c")
+SRCS := $(shell find $(SRC_BASE) -name "*.cpp" -or -name "*.c")
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
-INC_DIRS := $(shell find $(SRC_DIRS) -type d) /opt/vc/include
+INC_DIRS := $(shell find $(INC_BASE) -type d) /opt/vc/include
 INC_FLAGS := $(addprefix -I ,$(INC_DIRS))
 
 LDFLAGS := -L /opt/vc/lib -lbcm_host -lm
