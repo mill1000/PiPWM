@@ -27,7 +27,7 @@ shared: $(BUILD_DIR)/$(TARGET_SHARED)
 $(BUILD_DIR)/$(TARGET_STATIC): $(OBJS)
 	$(AR) rcs $@ $^ 
 
-$(BUILD_DIR)/lib$(TARGET_NAME).so: $(OBJS)
+$(BUILD_DIR)/$(TARGET_SHARED): $(OBJS)
 	$(CC) $(LDFLAGS) -shared -fPIC $^ -o $@ 
 
 $(BUILD_DIR)/%.c.o: %.c
