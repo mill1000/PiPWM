@@ -25,9 +25,11 @@ static: $(BUILD_DIR)/$(TARGET_STATIC)
 shared: $(BUILD_DIR)/$(TARGET_SHARED)
 
 $(BUILD_DIR)/$(TARGET_STATIC): $(OBJS)
+	$(info Making static library: $(TARGET_STATIC))
 	$(AR) rcs $@ $^ 
 
 $(BUILD_DIR)/$(TARGET_SHARED): $(OBJS)
+	$(info Making shared library: $(TARGET_SHARED))
 	$(CC) $(LDFLAGS) -shared -fPIC $^ -o $@ 
 
 $(BUILD_DIR)/%.c.o: %.c
