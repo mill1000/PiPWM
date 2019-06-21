@@ -1,7 +1,8 @@
 #ifndef __PIPWM__
 #define __PIPWM__
 
-#include "bcm283x.h"
+#include "bcm283x_dma.h"
+#include "bcm283x_gpio.h"
 #include "memory.h"
 
 #define PIPWM_SOURCE_CLOCK_HZ (19.2e6)

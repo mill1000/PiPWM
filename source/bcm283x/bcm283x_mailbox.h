@@ -1,7 +1,9 @@
 #ifndef __BCM283X_MAILBOX__
 #define __BCM283X_MAILBOX__
 
-#include "bcm283x.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include <assert.h>
 
 #define MAILBOX_CODE_SUCCESS  0x80000000
 

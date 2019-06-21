@@ -1,7 +1,9 @@
 #ifndef __BCM283X_PWM__
 #define __BCM283X_PWM__
 
-#include "bcm283x.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include <assert.h>
 
 /**
   @brief  Internal structures, types and constants

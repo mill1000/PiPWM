@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include "bcm283x_gpio.h"
+#include "bcm283x.h"
 
 static bcm283x_gpio_t* gpio = NULL;
 

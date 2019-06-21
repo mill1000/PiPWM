@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include "bcm283x_dma.h"
+#include "bcm283x.h"
 
 static void* dma = NULL;
 

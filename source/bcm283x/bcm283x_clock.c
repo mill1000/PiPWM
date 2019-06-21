@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include "bcm283x_clock.h"
+#include "bcm283x.h"
 
 static void* clock = NULL;
 
