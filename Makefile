@@ -1,4 +1,6 @@
-TARGET_EXEC ?= pipwm
+TARGET_NAME ?= pipwm
+TARGET_SHARED ?= lib$(TARGET_NAME).so
+TARGET_STATIC ?= lib$(TARGET_NAME).a
 
 BUILD_DIR ?= build
 SRC_DIRS ?= source
@@ -16,10 +18,16 @@ LDFLAGS := -L /opt/vc/lib -lbcm_host -lm
 CPPFLAGS ?= $(INC_FLAGS) -MMD
 CFLAGS ?= -Wall
 
-$(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
-	$(CC) $(LDFLAGS) $^ -o $@ 
+all: static shared
 
--include $(DEPS)
+static: $(BUILD_DIR)/$(TARGET_STATIC) 
+shared: $(BUILD_DIR)/$(TARGET_SHARED)
+
+$(BUILD_DIR)/$(TARGET_STATIC): $(OBJS)
+	$(AR) rcs $@ $^ 
+
+$(BUILD_DIR)/lib$(TARGET_NAME).so: $(OBJS)
+	$(CC) $(LDFLAGS) -shared -fPIC $^ -o $@ 
 
 $(BUILD_DIR)/%.c.o: %.c
 	@$(MKDIR_P) $(dir $@)
@@ -28,3 +36,5 @@ $(BUILD_DIR)/%.c.o: %.c
 .PHONY: clean
 clean:
 	$(RM) -r $(BUILD_DIR)
+
+-include $(DEPS)
