@@ -71,7 +71,7 @@ int main (int argc, char* argv[])
   logSetLevel(LOG_LEVEL_DEBUG);
     
   // Initalize PWM system with requested resolution fo 10 us
-  double tStep_s = piPwm_initialize(dma_channel_13, 10e-6);
+  piPwm_initialize(dma_channel_13, 10e-6);
 
   gpio_pin_mask_t pins = 1 << 12 | 1 << 16;
 
