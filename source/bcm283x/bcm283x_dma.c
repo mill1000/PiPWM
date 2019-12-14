@@ -91,3 +91,20 @@ void dmaEnable(dma_channel_t channel, bool enable)
 
   handle->CS.ACTIVE = enable;
 }
+
+/**
+  @brief  Test if the select DMA channel is Active/busy
+
+  @param  channel DMA channel number
+  @retval bool
+*/
+bool dmaActive(dma_channel_t channel)
+{
+  bcm283x_dma_channel_t* handle = dmaGetChannel(channel);
+
+  bool active = handle->CS.ACTIVE;
+
+  RMB();
+
+  return active;
+}
