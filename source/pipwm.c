@@ -362,6 +362,14 @@ pipwm_channel_t* piPwm_initalizeChannel(dma_channel_t dmaChannel, gpio_pin_mask_
 */
 void piPwm_releaseChannel(pipwm_channel_t* channel)
 {
+  // Remove the loop in control blocks to avoid glitches
+  channel->vControl->controlBlocks[1].nextControlBlock = NULL;
+
+  // Wait for DMA transfer to complete
+  LOGD(TAG, "Waiting for DMA channel %d to be idle.", channel->dmaChannel);
+  while (dmaActive(channel->dmaChannel))
+    microsleep(1000);
+
   // Shut down DMA channel
   dmaEnable(channel->dmaChannel, false);
 
