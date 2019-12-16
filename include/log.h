@@ -36,6 +36,6 @@ typedef enum
 #define LOGE(TAG, FORMAT, ...) _LOG(LOG_LEVEL_ERROR, LOG_FORMAT(LOG_COLOR_RED, E, FORMAT), TAG, ##__VA_ARGS__)
 #define LOGF(TAG, FORMAT, ...) _LOG(LOG_LEVEL_FATAL, LOG_FORMAT(LOG_COLOR_RED, F, FORMAT), TAG, ##__VA_ARGS__)
 
-void logPrint(LOG_LEVEL level, const char* format, ...) __attribute__((weak));
+void logPrint(LOG_LEVEL level, const char* format, ...);
 void logSetLevel(LOG_LEVEL level);
 #endif

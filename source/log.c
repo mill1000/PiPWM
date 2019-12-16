@@ -25,7 +25,7 @@ void logSetLevel(LOG_LEVEL level)
   @param  ... VA list
   @retval none
 */
-void logPrint(LOG_LEVEL level, const char* format, ...)
+void  __attribute__((weak)) logPrint(LOG_LEVEL level, const char* format, ...)
 {
   if (level < minLevel)
     return;
